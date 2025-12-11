@@ -3,9 +3,11 @@ package mchorse.bbs_mod.film;
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.netty.util.collection.IntObjectHashMap;
 import io.netty.util.collection.IntObjectMap;
+import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.client.renderer.ModelBlockEntityRenderer;
 import mchorse.bbs_mod.entity.ActorEntity;
 import mchorse.bbs_mod.film.replays.Replay;
+import mchorse.bbs_mod.film.replays.ReplayGroup;
 import mchorse.bbs_mod.forms.FormUtils;
 import mchorse.bbs_mod.forms.FormUtilsClient;
 import mchorse.bbs_mod.forms.entities.IEntity;
@@ -40,6 +42,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.MovementType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.LightType;
@@ -561,6 +564,9 @@ public abstract class BaseFilmController
             Form form1 = entity.getForm();
             replay.properties.applyProperties(form1, tick + delta);
 
+            /* Apply group properties (visible and color) */
+            this.applyGroupProperties(replay, form1, tick + delta);
+
             Map<String, Integer> actors = this.getActors();
 
             if (actors != null)
@@ -609,6 +615,65 @@ public abstract class BaseFilmController
         return this.paused ? 0F : transition;
     }
 
+    /**
+     * Apply group properties (visible and color) to a replay's form
+     */
+    protected void applyGroupProperties(Replay replay, Form form, float tick)
+    {
+        if (form == null || replay == null)
+        {
+            return;
+        }
+
+        String groupName = replay.group.get();
+
+        if (groupName == null || groupName.trim().isEmpty())
+        {
+            return;
+        }
+
+        /* Sync groups */
+        this.film.syncReplayGroups();
+
+        /* Apply properties from parent groups first, then child groups (child overrides parent) */
+        String[] parts = groupName.split("/");
+        StringBuilder currentPath = new StringBuilder();
+
+        for (int i = 0; i < parts.length; i++)
+        {
+            if (i > 0)
+            {
+                currentPath.append("/");
+            }
+
+            currentPath.append(parts[i]);
+
+            ReplayGroup group = this.film.getGroup(currentPath.toString());
+
+            if (group != null)
+            {
+                /* Apply visible property */
+                Boolean visible = group.getVisible(tick);
+
+                if (visible != null)
+                {
+                    form.visible.set(visible);
+                }
+
+                /* Apply color property (only for ModelForm) */
+                if (form instanceof mchorse.bbs_mod.forms.forms.ModelForm modelForm)
+                {
+                    mchorse.bbs_mod.utils.colors.Color color = group.getColor(tick);
+
+                    if (color != null)
+                    {
+                        modelForm.color.set(color);
+                    }
+                }
+            }
+        }
+    }
+
     protected boolean canUpdate(int i, Replay replay, IEntity entity, UpdateMode updateMode)
     {
         if (this.paused && (updateMode == UpdateMode.UPDATE))
@@ -617,6 +682,133 @@ public abstract class BaseFilmController
         }
 
         return i != this.exception;
+    }
+
+    /**
+     * Check if a replay entity should be rendered based on occlusion culling
+     */
+    protected boolean isReplayVisible(Replay replay, IEntity entity, WorldRenderContext context, float transition)
+    {
+        /* If occlusion culling is disabled in settings, render all replays */
+        if (!BBSSettings.occlusionCulling.get())
+        {
+            return true;
+        }
+
+        System.out.println("[BBS Culling] Checking visibility for: " + replay.getName() + ", global=" + replay.global.get());
+
+        /* If global flag is enabled, bypass culling */
+        if (replay.global.get())
+        {
+            System.out.println("[BBS Culling] Replay '" + replay.getName() + "' visible: global flag enabled");
+
+            return true;
+        }
+
+        Form form = entity.getForm();
+
+        if (form == null)
+        {
+            System.out.println("[BBS Culling] Replay '" + replay.getName() + "' not visible: form is null");
+
+            return false;
+        }
+
+        /* Calculate entity position */
+        Vector3d position = Vectors.TEMP_3D.set(
+            Lerps.lerp(entity.getPrevX(), entity.getX(), transition),
+            Lerps.lerp(entity.getPrevY(), entity.getY(), transition),
+            Lerps.lerp(entity.getPrevZ(), entity.getZ(), transition)
+        );
+
+        Camera camera = context.camera();
+        Vec3d cameraPos = camera.getPos();
+
+        /* Occlusion culling - check if entity is blocked by terrain/blocks */
+        World world = entity.getWorld();
+
+        if (world != null)
+        {
+            /* Calculate model bounds from the form's hitbox dimensions */
+            float hitboxWidth = form.hitbox.get() ? form.hitboxWidth.get() : 0.6F;
+            float hitboxHeight = form.hitbox.get() ? form.hitboxHeight.get() : 1.8F;
+
+            double halfWidth = hitboxWidth * 0.5;
+            double halfHeight = hitboxHeight * 0.5;
+
+            System.out.println(String.format("[BBS Culling] Testing replay '%s' with hitbox %.2fx%.2f at (%.2f, %.2f, %.2f)", 
+                replay.getName(), hitboxWidth, hitboxHeight, position.x, position.y, position.z));
+
+            /* Test multiple points on the model to see if any are visible */
+            Vec3d[] testPoints =
+            {
+                new Vec3d(position.x, position.y + hitboxHeight, position.z),
+                new Vec3d(position.x, position.y + halfHeight, position.z),
+                new Vec3d(position.x, position.y, position.z),
+                new Vec3d(position.x + halfWidth, position.y + halfHeight, position.z),
+                new Vec3d(position.x - halfWidth, position.y + halfHeight, position.z),
+                new Vec3d(position.x, position.y + halfHeight, position.z + halfWidth),
+                new Vec3d(position.x, position.y + halfHeight, position.z - halfWidth)
+            };
+
+            MinecraftClient client = MinecraftClient.getInstance();
+            Entity cameraEntity = client.getCameraEntity();
+
+            if (cameraEntity != null)
+            {
+                boolean anyPointVisible = false;
+
+                for (Vec3d testPoint : testPoints)
+                {
+                    net.minecraft.world.RaycastContext raycastContext = new net.minecraft.world.RaycastContext(
+                        cameraPos,
+                        testPoint,
+                        net.minecraft.world.RaycastContext.ShapeType.COLLIDER,
+                        net.minecraft.world.RaycastContext.FluidHandling.NONE,
+                        cameraEntity
+                    );
+
+                    HitResult hit = world.raycast(raycastContext);
+
+                    /* If raycast reaches the entity without hitting a block, at least one point is visible */
+                    if (hit == null || hit.getType() != HitResult.Type.BLOCK)
+                    {
+                        anyPointVisible = true;
+
+                        break;
+                    }
+                    else
+                    {
+                        double hitDistance = hit.getPos().squaredDistanceTo(cameraPos);
+                        double entityDistance = testPoint.squaredDistanceTo(cameraPos);
+
+                        /* If we can see past the hit point to the entity, it's visible */
+                        if (hitDistance >= entityDistance * 0.95)
+                        {
+                            anyPointVisible = true;
+
+                            break;
+                        }
+                    }
+                }
+
+                if (!anyPointVisible)
+                {
+                    System.out.println(String.format("[BBS Culling] Replay '%s' (hitbox: %.2fx%.2f) not visible: fully occluded", 
+                        replay.getName(), hitboxWidth, hitboxHeight));
+
+                    return false;
+                }
+                else
+                {
+                    System.out.println(String.format("[BBS Culling] Replay '%s' visible: passed occlusion test", replay.getName()));
+                }
+            }
+        }
+
+        System.out.println("[BBS Culling] Replay '" + replay.getName() + "' visible: all checks passed");
+
+        return true;
     }
 
     public void render(WorldRenderContext context)
@@ -630,6 +822,12 @@ public abstract class BaseFilmController
             Replay replay = this.film.replays.getList().get(i);
 
             if (!this.canUpdate(i, replay, entity, UpdateMode.RENDER))
+            {
+                continue;
+            }
+
+            /* Check visibility with frustum and occlusion culling */
+            if (!this.isReplayVisible(replay, entity, context, context.tickDelta()))
             {
                 continue;
             }

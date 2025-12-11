@@ -13,6 +13,7 @@ import mchorse.bbs_mod.data.DataStorageUtils;
 import mchorse.bbs_mod.data.types.MapType;
 import mchorse.bbs_mod.film.Film;
 import mchorse.bbs_mod.film.replays.Replay;
+import mchorse.bbs_mod.film.replays.ReplayGroup;
 import mchorse.bbs_mod.film.replays.ReplayKeyframes;
 import mchorse.bbs_mod.forms.FormUtils;
 import mchorse.bbs_mod.forms.entities.IEntity;
@@ -86,6 +87,7 @@ public class UIReplaysEditor extends UIElement
     private UIFilmPanel filmPanel;
     private Film film;
     private Replay replay;
+    private String selectedGroup = null;
     private Set<String> keys = new LinkedHashSet<>();
 
     static
@@ -242,7 +244,22 @@ public class UIReplaysEditor extends UIElement
     public UIReplaysEditor(UIFilmPanel filmPanel)
     {
         this.filmPanel = filmPanel;
-        this.replays = new UIReplaysOverlayPanel(filmPanel, (replay) -> this.setReplay(replay, false, true));
+        this.replays = new UIReplaysOverlayPanel(filmPanel, (replay) -> {
+            if (replay == null)
+            {
+                /* Check if a group was selected instead */
+                String group = this.replays.replays.getSelectedGroup();
+                
+                if (group != null)
+                {
+                    this.setGroup(group);
+                    return;
+                }
+            }
+            
+            /* Normal replay selection */
+            this.setReplay(replay, false, true);
+        });
 
         this.markContainer();
     }
@@ -279,6 +296,7 @@ public class UIReplaysEditor extends UIElement
     public void setReplay(Replay replay, boolean select, boolean resetOrbit)
     {
         this.replay = replay;
+        this.selectedGroup = null;
 
         if (resetOrbit)
         {
@@ -293,6 +311,24 @@ public class UIReplaysEditor extends UIElement
         {
             this.replays.replays.setCurrentScroll(replay);
         }
+    }
+
+    public void setGroup(String groupName)
+    {
+        this.selectedGroup = groupName;
+        this.replay = null;
+
+        /* Sync groups and ensure the group exists */
+        if (this.film != null)
+        {
+            this.film.syncReplayGroups();
+            this.film.getOrCreateGroup(groupName);
+        }
+
+        this.filmPanel.getController().orbit.reset();
+        this.replays.setReplay(null);
+        this.filmPanel.actionEditor.setClips(null);
+        this.updateChannelsList();
     }
 
     public void moveReplay(double x, double y, double z)
@@ -316,6 +352,53 @@ public class UIReplaysEditor extends UIElement
             this.keyframeEditor.removeFromParent();
 
             lastEditor = this.keyframeEditor.view;
+        }
+
+        /* Handle group editing */
+        if (this.selectedGroup != null && this.film != null)
+        {
+            this.film.syncReplayGroups();
+            ReplayGroup group = this.film.getGroup(this.selectedGroup);
+
+            if (group != null)
+            {
+                List<UIKeyframeSheet> sheets = new ArrayList<>();
+
+                /* Only add visible and color keyframe channels for groups */
+                sheets.add(new UIKeyframeSheet(getColor("visible"), false, group.visible, null).icon(ICONS.get("visible")));
+                sheets.add(new UIKeyframeSheet(getColor("color"), false, group.color, null).icon(ICONS.get("color")));
+
+                this.keys.clear();
+                this.keys.add("visible");
+                this.keys.add("color");
+
+                this.keyframeEditor = new UIKeyframeEditor((consumer) -> new UIFilmKeyframes(this.filmPanel.cameraEditor, consumer).absolute()).target(this.filmPanel.editArea);
+                this.keyframeEditor.full(this);
+                this.keyframeEditor.setUndoId("group_keyframe_editor");
+
+                if (lastEditor != null)
+                {
+                    this.keyframeEditor.view.copyViewport(lastEditor);
+                }
+
+                this.keyframeEditor.view.duration(() -> this.film.camera.calculateDuration());
+                
+                for (UIKeyframeSheet sheet : sheets)
+                {
+                    this.keyframeEditor.view.addSheet(sheet);
+                }
+                
+                this.add(this.keyframeEditor);
+                
+                this.resize();
+                
+                if (lastEditor == null)
+                {
+                    this.keyframeEditor.view.resetView();
+                }
+            }
+
+            return;
         }
 
         if (this.replay == null)

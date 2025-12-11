@@ -279,6 +279,11 @@ public class UIKeys
     public static final IKey FILM_REPLAY_FILTER_SHEETS = L10n.lang("bbs.ui.film.replay.filter_sheets");
     public static final IKey FILM_REPLAY_FILTER_SHEETS_TITLE = L10n.lang("bbs.ui.film.replay.filter_sheets-title");
     public static final IKey FILM_REPLAY_FP = L10n.lang("bbs.ui.film.replay.fp");
+    public static final IKey FILM_REPLAY_GLOBAL = L10n.lang("bbs.ui.film.replay.global");
+    public static final IKey FILM_REPLAY_GLOBAL_TOOLTIP = L10n.lang("bbs.ui.film.replay.global-tooltip");
+    public static final IKey SETTINGS_OCCLUSION_CULLING = L10n.lang("bbs.ui.settings.occlusion_culling");
+    public static final IKey SETTINGS_OCCLUSION_CULLING_TOOLTIP = L10n.lang("bbs.ui.settings.occlusion_culling-tooltip");
+    public static final IKey FILM_REPLAY_GROUP = L10n.lang("bbs.ui.film.replay.group");
     public static final IKey FILM_REPLAY_LABEL = L10n.lang("bbs.ui.film.replay.label");
     public static final IKey FILM_REPLAY_LOOPING = L10n.lang("bbs.ui.film.replay.looping");
     public static final IKey FILM_REPLAY_LOOPING_TOOLTIP = L10n.lang("bbs.ui.film.replay.looping-tooltip");
@@ -653,6 +658,14 @@ public class UIKeys
     public static final IKey SCENE_REPLAYS_CONTEXT_FROM_MODEL_BLOCK_TITLE = L10n.lang("bbs.ui.scene.replays.context.from_model_block-title");
     public static final IKey SCENE_REPLAYS_CONTEXT_OFFSET_TIME = L10n.lang("bbs.ui.scene.replays.context.offset_time");
     public static final IKey SCENE_REPLAYS_CONTEXT_OFFSET_TIME_DESCRIPTION = L10n.lang("bbs.ui.scene.replays.context.offset_time-description");
+    public static final IKey SCENE_REPLAYS_CONTEXT_ASSIGN_GROUP = L10n.lang("bbs.ui.scene.replays.context.assign_group");
+    public static final IKey SCENE_REPLAYS_CONTEXT_ASSIGN_GROUP_TITLE = L10n.lang("bbs.ui.scene.replays.context.assign_group-title");
+    public static final IKey SCENE_REPLAYS_CONTEXT_ASSIGN_GROUP_DESCRIPTION = L10n.lang("bbs.ui.scene.replays.context.assign_group-description");
+    public static final IKey SCENE_REPLAYS_CONTEXT_CLEAR_GROUP = L10n.lang("bbs.ui.scene.replays.context.clear_group");
+    public static final IKey SCENE_REPLAYS_CONTEXT_NEW_GROUP = L10n.lang("bbs.ui.scene.replays.context.new_group");
+    public static final IKey SCENE_REPLAYS_CONTEXT_NEW_GROUP_TITLE = L10n.lang("bbs.ui.scene.replays.context.new_group-title");
+    public static final IKey SCENE_REPLAYS_CONTEXT_NEW_GROUP_DESCRIPTION = L10n.lang("bbs.ui.scene.replays.context.new_group-description");
+    public static final IKey SCENE_REPLAYS_CONTEXT_SHOW_ALL_GROUPS = L10n.lang("bbs.ui.scene.replays.context.show_all_groups");
     public static final IKey SCENE_REPLAYS_CONTEXT_OFFSET_TIME_EXPRESSION_TOOLTIP = L10n.lang("bbs.ui.scene.replays.context.offset_time.expression-tooltip");
     public static final IKey SCENE_REPLAYS_CONTEXT_OFFSET_TIME_TITLE = L10n.lang("bbs.ui.scene.replays.context.offset_time-title");
     public static final IKey SCENE_REPLAYS_CONTEXT_PASTE = L10n.lang("bbs.ui.scene.replays.context.paste");

@@ -38,6 +38,8 @@ public class Replay extends ValueGroup
     public final ValueBoolean fp = new ValueBoolean("fp", false);
     public final ValueBoolean relative = new ValueBoolean("relative", false);
     public final ValuePoint relativeOffset = new ValuePoint("relativeOffset", new Point(0, 0, 0));
+    public final ValueBoolean global = new ValueBoolean("global", false);
+    public final ValueString group = new ValueString("group", "");
 
     public Replay(String id)
     {
@@ -59,6 +61,8 @@ public class Replay extends ValueGroup
         this.add(this.fp);
         this.add(this.relative);
         this.add(this.relativeOffset);
+        this.add(this.global);
+        this.add(this.group);
     }
 
     public String getName()

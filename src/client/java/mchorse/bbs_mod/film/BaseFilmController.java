@@ -572,7 +572,7 @@ public abstract class BaseFilmController
             replay.properties.applyProperties(form1, tick + delta);
 
             /* Apply group properties (visible and color) */
-            this.applyGroupProperties(replay, form1, tick + delta);
+            this.applyGroupProperties(replay, form1, tick + delta, i);
 
             Map<String, Integer> actors = this.getActors();
 
@@ -623,9 +623,9 @@ public abstract class BaseFilmController
     }
 
     /**
-     * Apply group properties (visible and color) to a replay's form
+     * Apply group properties (visible, color, transform, and textures) to a replay's form
      */
-    protected void applyGroupProperties(Replay replay, Form form, float tick)
+    protected void applyGroupProperties(Replay replay, Form form, float tick, long entityId)
     {
         if (form == null || replay == null)
         {
@@ -677,6 +677,37 @@ public abstract class BaseFilmController
                         modelForm.color.set(color);
                     }
                 }
+
+                /* Apply transform property (position/rotation/scale) if replay doesn't overwrite */
+                if (!replay.overwriteGroupTransform.get())
+                {
+                    mchorse.bbs_mod.utils.pose.Transform transform = group.getTransform(tick);
+
+                    if (transform != null)
+                    {
+                        /* Apply transform to the form's transform value */
+                        mchorse.bbs_mod.utils.pose.Transform formTransform = form.transform.get();
+
+                        formTransform.translate.set(transform.translate);
+                        formTransform.scale.set(transform.scale);
+                        formTransform.rotate.set(transform.rotate);
+                        formTransform.rotate2.set(transform.rotate2);
+                    }
+                }
+
+                /* Apply texture keyframe (for ModelForm only) */
+                if (form instanceof mchorse.bbs_mod.forms.forms.ModelForm modelForm)
+                {
+                    mchorse.bbs_mod.resources.Link texture = group.getTexture(tick, entityId);
+
+                    if (texture != null)
+                    {
+                        modelForm.texture.set(texture);
+                    }
+                }
+
+                /* Apply texture and other form properties from group */
+                group.properties.applyProperties(form, tick);
             }
         }
     }

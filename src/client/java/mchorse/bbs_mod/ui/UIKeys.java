@@ -274,6 +274,8 @@ public class UIKeys
     public static final IKey FILM_REPLAY_ANIMATION_TO_POSE_STEP = L10n.lang("bbs.ui.film.replay.animation_to_pose.step");
     public static final IKey FILM_REPLAY_ANIMATION_TO_POSE_TITLE = L10n.lang("bbs.ui.film.replay.animation_to_pose.title");
     public static final IKey FILM_REPLAY_AXES_PREVIEW = L10n.lang("bbs.ui.film.replay.axes_preview");
+    public static final IKey FILM_REPLAY_OVERWRITE_GROUP_TRANSFORM = L10n.lang("bbs.ui.film.replay.overwrite_group_transform");
+    public static final IKey FILM_REPLAY_OVERWRITE_GROUP_TRANSFORM_TOOLTIP = L10n.lang("bbs.ui.film.replay.overwrite_group_transform-tooltip");
     public static final IKey FILM_REPLAY_CONTEXT_ADD = L10n.lang("bbs.ui.film.replay.context.add");
     public static final IKey FILM_REPLAY_CONTEXT_ANIMATION_TO_KEYFRAMES = L10n.lang("bbs.ui.film.replay.context.animation_to_keyframes");
     public static final IKey FILM_REPLAY_CONTEXT_MOVE_HERE = L10n.lang("bbs.ui.film.replay.context.move_here");

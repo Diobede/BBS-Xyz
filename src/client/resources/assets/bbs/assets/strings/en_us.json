@@ -475,6 +475,8 @@
     "bbs.ui.film.replay.animation_to_pose.step": "Baking step",
     "bbs.ui.film.replay.animation_to_pose.title": "Animation to poses",
     "bbs.ui.film.replay.axes_preview": "Axes preview",
+    "bbs.ui.film.replay.overwrite_group_transform": "Overwrite Group Transform",
+    "bbs.ui.film.replay.overwrite_group_transform-tooltip": "When enabled, this replay will ignore transform keyframes from its group and use only its own transform. Useful when you want a replay to have independent positioning while still being part of a group.",
     "bbs.ui.film.replay.context.add": "Add a replay here",
     "bbs.ui.film.replay.context.animation_to_keyframes": "Animation to pose keyframes...",
     "bbs.ui.film.replay.context.move_here": "Move replay here",

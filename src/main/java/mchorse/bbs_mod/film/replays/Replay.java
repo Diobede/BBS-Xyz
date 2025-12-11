@@ -44,6 +44,8 @@ public class Replay extends ValueGroup
     public final ValueBoolean axesPreview = new ValueBoolean("axes_preview", false);
     public final ValueString axesPreviewBone = new ValueString("axes_preview_bone", "");
 
+    public final ValueBoolean overwriteGroupTransform = new ValueBoolean("overwrite_group_transform", false);
+
     public Replay(String id)
     {
         super(id);
@@ -69,6 +71,8 @@ public class Replay extends ValueGroup
 
         this.add(this.axesPreview);
         this.add(this.axesPreviewBone);
+
+        this.add(this.overwriteGroupTransform);
     }
 
     public String getName()

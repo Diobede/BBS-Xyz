@@ -43,6 +43,7 @@ public class UIReplaysOverlayPanel extends UIOverlayPanel
     public UITrackpad relativeOffsetZ;
     public UIToggle axesPreview;
     public UIButton pickAxesPreviewBone;
+    public UIToggle overwriteGroupTransform;
 
     private Consumer<Replay> callback;
 
@@ -124,6 +125,8 @@ public class UIReplaysOverlayPanel extends UIOverlayPanel
                 this.edit((r) -> r.axesPreviewBone.set(s));
             });
         });
+        this.overwriteGroupTransform = new UIToggle(UIKeys.FILM_REPLAY_OVERWRITE_GROUP_TRANSFORM, (b) -> this.edit((replay) -> replay.overwriteGroupTransform.set(b.getValue())));
+        this.overwriteGroupTransform.tooltip(UIKeys.FILM_REPLAY_OVERWRITE_GROUP_TRANSFORM_TOOLTIP);
 
         this.properties = UI.scrollView(5, 6,
             UI.label(UIKeys.FILM_REPLAY_REPLAY),
@@ -135,7 +138,8 @@ public class UIReplaysOverlayPanel extends UIOverlayPanel
             this.looping, this.actor, this.fp,
             this.relative, UI.row(this.relativeOffsetX, this.relativeOffsetY, this.relativeOffsetZ),
             this.global,
-            this.axesPreview, this.pickAxesPreviewBone
+            this.axesPreview, this.pickAxesPreviewBone,
+            this.overwriteGroupTransform
         );
         this.properties.relative(this.replays).x(1F).wTo(this.icons.area).h(1F);
         this.replays.relative(this.content).w(0.5F).h(1F);
@@ -178,6 +182,7 @@ public class UIReplaysOverlayPanel extends UIOverlayPanel
             this.relativeOffsetZ.setValue(replay.relativeOffset.get().z);
             this.global.setValue(replay.global.get());
             this.axesPreview.setValue(replay.axesPreview.get());
+            this.overwriteGroupTransform.setValue(replay.overwriteGroupTransform.get());
         }
     }
 

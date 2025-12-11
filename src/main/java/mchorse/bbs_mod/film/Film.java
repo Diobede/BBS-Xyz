@@ -1,6 +1,8 @@
 package mchorse.bbs_mod.film;
 
 import mchorse.bbs_mod.BBSMod;
+import mchorse.bbs_mod.data.types.BaseType;
+import mchorse.bbs_mod.data.types.MapType;
 import mchorse.bbs_mod.film.replays.Inventory;
 import mchorse.bbs_mod.film.replays.Replay;
 import mchorse.bbs_mod.film.replays.ReplayGroup;
@@ -101,5 +103,56 @@ public class Film extends ValueGroup
     public ReplayGroup getGroup(String groupName)
     {
         return this.replayGroups.get(groupName);
+    }
+
+    @Override
+    public BaseType toData()
+    {
+        MapType data = (MapType) super.toData();
+
+        /* Serialize replay groups */
+        if (!this.replayGroups.isEmpty())
+        {
+            MapType groupsData = new MapType();
+
+            for (Map.Entry<String, ReplayGroup> entry : this.replayGroups.entrySet())
+            {
+                groupsData.put(entry.getKey(), entry.getValue().toData());
+            }
+
+            data.put("replay_groups", groupsData);
+        }
+
+        return data;
+    }
+
+    @Override
+    public void fromData(BaseType data)
+    {
+        super.fromData(data);
+
+        /* Deserialize replay groups */
+        if (data.isMap())
+        {
+            MapType map = data.asMap();
+
+            if (map.has("replay_groups"))
+            {
+                BaseType groupsData = map.get("replay_groups");
+
+                if (groupsData.isMap())
+                {
+                    this.replayGroups.clear();
+
+                    for (Map.Entry<String, BaseType> entry : groupsData.asMap())
+                    {
+                        ReplayGroup group = new ReplayGroup(entry.getKey());
+                        
+                        group.fromData(entry.getValue());
+                        this.replayGroups.put(entry.getKey(), group);
+                    }
+                }
+            }
+        }
     }
 }

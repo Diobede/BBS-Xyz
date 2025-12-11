@@ -21,6 +21,7 @@ import mchorse.bbs_mod.forms.forms.Form;
 import mchorse.bbs_mod.forms.forms.ModelForm;
 import mchorse.bbs_mod.forms.renderers.ModelFormRenderer;
 import mchorse.bbs_mod.graphics.window.Window;
+import mchorse.bbs_mod.l10n.keys.IKey;
 import mchorse.bbs_mod.resources.Link;
 import mchorse.bbs_mod.settings.values.base.BaseValue;
 import mchorse.bbs_mod.settings.values.base.BaseValueBasic;
@@ -122,6 +123,12 @@ public class UIReplaysEditor extends UIElement
         COLORS.put("lighting", Colors.YELLOW);
         COLORS.put("shape_keys", Colors.PINK);
         COLORS.put("actions", Colors.MAGENTA);
+        
+        COLORS.put("texture", Colors.BLUE);
+        COLORS.put("more_texture1", Colors.BLUE);
+        COLORS.put("more_texture2", Colors.BLUE);
+        COLORS.put("random_texture", Colors.ORANGE);
+        COLORS.put("random_texture_seed", Colors.YELLOW);
 
         COLORS.put("item_main_hand", Colors.ORANGE);
         COLORS.put("item_off_hand", Colors.ORANGE);
@@ -364,13 +371,44 @@ public class UIReplaysEditor extends UIElement
             {
                 List<UIKeyframeSheet> sheets = new ArrayList<>();
 
-                /* Only add visible and color keyframe channels for groups */
+                /* Add visible, color, and transform keyframe channels for groups */
                 sheets.add(new UIKeyframeSheet(getColor("visible"), false, group.visible, null).icon(ICONS.get("visible")));
                 sheets.add(new UIKeyframeSheet(getColor("color"), false, group.color, null).icon(ICONS.get("color")));
+                sheets.add(new UIKeyframeSheet(getColor("transform"), false, group.transform, null).icon(ICONS.get("transform")));
+
+                /* Add texture keyframe channels */
+                sheets.add(new UIKeyframeSheet(getColor("texture"), false, group.texture, null).icon(ICONS.get("texture")));
+                sheets.add(new UIKeyframeSheet(getColor("more_texture1"), false, group.moreTexture1, null).icon(ICONS.get("texture")));
+                sheets.add(new UIKeyframeSheet(getColor("more_texture2"), false, group.moreTexture2, null).icon(ICONS.get("texture")));
+                sheets.add(new UIKeyframeSheet(getColor("random_texture"), false, group.randomTexture, null).icon(ICONS.get("random_texture")));
+                sheets.add(new UIKeyframeSheet(getColor("random_texture_seed"), false, group.randomTextureSeed, null).icon(ICONS.get("random_texture")));
+
+                /* Add form property keyframe channels from group.properties */
+                for (String key : group.properties.properties.keySet())
+                {
+                    KeyframeChannel property = group.properties.properties.get(key);
+
+                    if (property != null)
+                    {
+                        UIKeyframeSheet sheet = new UIKeyframeSheet(getColor(key), false, property, null);
+                        sheets.add(sheet.icon(getIcon(key)));
+                    }
+                }
 
                 this.keys.clear();
                 this.keys.add("visible");
                 this.keys.add("color");
+                this.keys.add("transform");
+                this.keys.add("texture");
+                this.keys.add("more_texture1");
+                this.keys.add("more_texture2");
+                this.keys.add("random_texture");
+                this.keys.add("random_texture_seed");
+
+                for (String key : group.properties.properties.keySet())
+                {
+                    this.keys.add(key);
+                }
 
                 this.keyframeEditor = new UIKeyframeEditor((consumer) -> new UIFilmKeyframes(this.filmPanel.cameraEditor, consumer).absolute()).target(this.filmPanel.editArea);
                 this.keyframeEditor.full(this);
@@ -382,6 +420,46 @@ public class UIReplaysEditor extends UIElement
                 }
 
                 this.keyframeEditor.view.duration(() -> this.film.camera.calculateDuration());
+                
+                /* Add context menu for groups */
+                this.keyframeEditor.view.context((menu) ->
+                {
+                    int mouseY = this.getContext().mouseY;
+                    UIKeyframeSheet sheet = this.keyframeEditor.view.getGraph().getSheet(mouseY);
+
+                    if (sheet != null && sheet.id.equals("random_texture_seed"))
+                    {
+                        menu.action(Icons.REFRESH, IKey.constant("Randomize Seed"), () ->
+                        {
+                            java.util.Random random = new java.util.Random();
+                            int randomSeed = random.nextInt(1000000);
+                            
+                            ReplayGroup selectedGroup = this.film.getGroup(this.selectedGroup);
+                            
+                            if (selectedGroup != null)
+                            {
+                                int tick = this.filmPanel.getCursor();
+                                selectedGroup.randomTextureSeed.insert(tick, randomSeed);
+                            }
+                        });
+                    }
+                    
+                    if (this.keyframeEditor.view.getGraph() instanceof UIKeyframeDopeSheet)
+                    {
+                        menu.action(Icons.FILTER, UIKeys.FILM_REPLAY_FILTER_SHEETS, () ->
+                        {
+                            UIKeyframeSheetFilterOverlayPanel panel = new UIKeyframeSheetFilterOverlayPanel(BBSSettings.disabledSheets.get(), this.keys);
+
+                            UIOverlay.addOverlay(this.getContext(), panel, 240, 0.9F);
+
+                            panel.onClose((e) ->
+                            {
+                                this.updateChannelsList();
+                                BBSSettings.disabledSheets.set(BBSSettings.disabledSheets.get());
+                            });
+                        });
+                    }
+                });
                 
                 for (UIKeyframeSheet sheet : sheets)
                 {

@@ -41,6 +41,9 @@ public class Replay extends ValueGroup
     public final ValueBoolean global = new ValueBoolean("global", false);
     public final ValueString group = new ValueString("group", "");
 
+    public final ValueBoolean axesPreview = new ValueBoolean("axes_preview", false);
+    public final ValueString axesPreviewBone = new ValueString("axes_preview_bone", "");
+
     public Replay(String id)
     {
         super(id);
@@ -63,6 +66,9 @@ public class Replay extends ValueGroup
         this.add(this.relativeOffset);
         this.add(this.global);
         this.add(this.group);
+
+        this.add(this.axesPreview);
+        this.add(this.axesPreviewBone);
     }
 
     public String getName()

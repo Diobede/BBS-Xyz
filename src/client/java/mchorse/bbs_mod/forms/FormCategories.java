@@ -1,6 +1,7 @@
 package mchorse.bbs_mod.forms;
 
 import mchorse.bbs_mod.forms.categories.FormCategory;
+import mchorse.bbs_mod.forms.sections.AAAParticleFormSection;
 import mchorse.bbs_mod.forms.sections.ExtraFormSection;
 import mchorse.bbs_mod.forms.sections.FormSection;
 import mchorse.bbs_mod.forms.sections.ModelFormSection;
@@ -33,6 +34,7 @@ public class FormCategories implements IWatchDogListener
         this.sections.add(this.userForms);
         this.sections.add(new ModelFormSection(this));
         this.sections.add(new ParticleFormSection(this));
+        this.sections.add(new AAAParticleFormSection(this));
         this.sections.add(new ExtraFormSection(this));
 
         for (FormSection section : this.sections)

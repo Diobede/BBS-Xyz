@@ -3,6 +3,7 @@ package mchorse.bbs_mod.ui.forms.editors;
 import mchorse.bbs_mod.BBSSettings;
 import mchorse.bbs_mod.data.types.MapType;
 import mchorse.bbs_mod.forms.FormUtils;
+import mchorse.bbs_mod.forms.forms.AAAParticleForm;
 import mchorse.bbs_mod.forms.forms.AnchorForm;
 import mchorse.bbs_mod.forms.forms.BillboardForm;
 import mchorse.bbs_mod.forms.forms.BlockForm;
@@ -27,6 +28,7 @@ import mchorse.bbs_mod.ui.film.replays.UIReplaysEditorUtils;
 import mchorse.bbs_mod.ui.forms.IUIFormList;
 import mchorse.bbs_mod.ui.forms.UIFormList;
 import mchorse.bbs_mod.ui.forms.UIFormPalette;
+import mchorse.bbs_mod.ui.forms.editors.forms.UIAAAParticleForm;
 import mchorse.bbs_mod.ui.forms.editors.forms.UIAnchorForm;
 import mchorse.bbs_mod.ui.forms.editors.forms.UIBillboardForm;
 import mchorse.bbs_mod.ui.forms.editors.forms.UIBlockForm;
@@ -117,6 +119,7 @@ public class UIFormEditor extends UIElement implements IUIFormList, ICursor
 
     static
     {
+        register(AAAParticleForm.class, UIAAAParticleForm::new);
         register(BillboardForm.class, UIBillboardForm::new);
         register(ExtrudedForm.class, UIExtrudedForm::new);
         register(LabelForm.class, UILabelForm::new);

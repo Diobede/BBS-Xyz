@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.6-SNAPSHOT'
+	id 'fabric-loom' version '1.7-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -56,6 +56,10 @@ dependencies {
 	// modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
 	modImplementation "maven.modrinth:sodium:mc1.20.1-0.5.8"
 	modCompileOnly "maven.modrinth:iris:1.7.0+1.20.1"
+
+	/* AAA Particles - Effekseer particle effects */
+	modImplementation "maven.modrinth:aaa-particles:1.20.1-1.4.7-fabric"
+	modImplementation "maven.modrinth:architectury-api:9.2.14+fabric"
 
 	modImplementation "org.anarres:jcpp:1.4.14"
 	modImplementation "io.github.douira:glsl-transformer:2.0.0-pre13"

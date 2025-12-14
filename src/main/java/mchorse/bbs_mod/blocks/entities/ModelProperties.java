@@ -215,6 +215,9 @@ public class ModelProperties implements IMapSerializable
 
     public void update(IEntity entity)
     {
+        /* Set the form on the entity so renderers can access it via entity.getForm() */
+        entity.setForm(this.form);
+        
         if (this.form != null)
         {
             this.form.update(entity);

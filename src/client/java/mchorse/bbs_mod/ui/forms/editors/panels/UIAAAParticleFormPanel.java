@@ -7,7 +7,9 @@ import mchorse.bbs_mod.forms.renderers.AAAParticleFormRenderer;
 import mchorse.bbs_mod.resources.Link;
 import mchorse.bbs_mod.ui.UIKeys;
 import mchorse.bbs_mod.ui.forms.editors.forms.UIForm;
+import mchorse.bbs_mod.ui.framework.elements.buttons.UIButton;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIToggle;
+import mchorse.bbs_mod.ui.framework.elements.input.UITexturePicker;
 import mchorse.bbs_mod.ui.framework.elements.input.UITrackpad;
 import mchorse.bbs_mod.ui.framework.elements.input.list.UIStringList;
 import mchorse.bbs_mod.ui.framework.elements.input.text.UITextbox;
@@ -29,11 +31,15 @@ public class UIAAAParticleFormPanel extends UIFormPanel<AAAParticleForm>
     /* Effect selection */
     public UIStringList effectList;
 
+    /* Preview image */
+    public UIButton pickPreview;
+
     /* Bone attachment */
     public UITextbox bone;
 
     /* Playback controls */
     public UIToggle paused;
+    public UIToggle restart;
     public UIToggle loop;
     public UITrackpad duration;
     public UITrackpad speed;
@@ -51,12 +57,19 @@ public class UIAAAParticleFormPanel extends UIFormPanel<AAAParticleForm>
         this.effectList = new UIStringList((item) -> this.setEffect(item.get(0)));
         this.effectList.background().h(120);
 
+        /* Preview picker */
+        this.pickPreview = new UIButton(UIKeys.FORMS_EDITORS_AAA_PARTICLE_PREVIEW, (b) ->
+        {
+            UITexturePicker.open(this.getContext(), this.form.preview.get(), (l) -> this.form.preview.set(l));
+        });
+
         /* Bone attachment */
         this.bone = new UITextbox(120, (t) -> this.form.bone.set(t));
         this.bone.tooltip(UIKeys.FORMS_EDITORS_AAA_PARTICLE_BONE_TOOLTIP);
 
         /* Playback controls */
         this.paused = new UIToggle(UIKeys.FORMS_EDITORS_AAA_PARTICLE_PAUSED, (b) -> this.form.paused.set(b.getValue()));
+        this.restart = new UIToggle(UIKeys.FORMS_EDITORS_AAA_PARTICLE_RESTART, (b) -> this.form.restart.set(b.getValue()));
         this.loop = new UIToggle(UIKeys.FORMS_EDITORS_AAA_PARTICLE_LOOP, (b) -> this.form.loop.set(b.getValue()));
         this.loop.tooltip(UIKeys.FORMS_EDITORS_AAA_PARTICLE_LOOP_TOOLTIP);
 
@@ -79,8 +92,9 @@ public class UIAAAParticleFormPanel extends UIFormPanel<AAAParticleForm>
 
         /* Add all to options panel */
         this.options.add(UI.label(UIKeys.FORMS_EDITORS_AAA_PARTICLE_EFFECT), this.effectList);
+        this.options.add(this.pickPreview);
         this.options.add(UI.label(UIKeys.FORMS_EDITORS_AAA_PARTICLE_BONE), this.bone);
-        this.options.add(this.paused, this.loop);
+        this.options.add(this.paused, this.restart, this.loop);
         this.options.add(UI.label(UIKeys.FORMS_EDITORS_AAA_PARTICLE_DURATION), this.duration);
         this.options.add(UI.label(UIKeys.FORMS_EDITORS_AAA_PARTICLE_SPEED), this.speed);
         this.options.add(UI.label(UIKeys.FORMS_EDITORS_AAA_PARTICLE_SCALE), this.particleScale);
@@ -184,6 +198,7 @@ public class UIAAAParticleFormPanel extends UIFormPanel<AAAParticleForm>
         /* Update UI values */
         this.bone.setText(form.bone.get());
         this.paused.setValue(form.paused.get());
+        this.restart.setValue(form.restart.get());
         this.loop.setValue(form.loop.get());
         this.duration.setValue(form.duration.get());
         this.speed.setValue(form.speed.get());

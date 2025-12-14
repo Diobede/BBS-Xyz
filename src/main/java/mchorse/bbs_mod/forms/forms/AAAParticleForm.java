@@ -18,12 +18,14 @@ public class AAAParticleForm extends Form
     /* Effect path - the .efkefc file path relative to assets/effeks/ */
     public final ValueLink effect = new ValueLink("effect", null);
 
+    /* Preview image for the form list */
+    public final ValueLink preview = new ValueLink("preview", null);
+
     /* Bone attachment - attach particle to a specific bone on parent model */
     public final ValueString bone = new ValueString("bone", "");
 
     /* Playback control */
-    public final ValueBoolean paused = new ValueBoolean("paused", false);
-    public final ValueBoolean loop = new ValueBoolean("loop", true);
+    public final ValueBoolean paused = new ValueBoolean("paused", false);    public final ValueBoolean restart = new ValueBoolean("restart", false);    public final ValueBoolean loop = new ValueBoolean("loop", true);
     public final ValueInt duration = new ValueInt("duration", 0);
 
     /* Speed multiplier for particle playback */
@@ -43,10 +45,13 @@ public class AAAParticleForm extends Form
         super();
 
         this.effect.invisible();
+        this.preview.invisible();
 
         this.add(this.effect);
+        this.add(this.preview);
         this.add(this.bone);
         this.add(this.paused);
+        this.add(this.restart);
         this.add(this.loop);
         this.add(this.duration);
         this.add(this.speed);

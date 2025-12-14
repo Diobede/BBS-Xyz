@@ -360,6 +360,7 @@ public class UIKeys
     public static final IKey FORMS_EDITORS_AAA_PARTICLE_BONE = L10n.lang("bbs.ui.forms.editors.aaa_particle.bone");
     public static final IKey FORMS_EDITORS_AAA_PARTICLE_BONE_TOOLTIP = L10n.lang("bbs.ui.forms.editors.aaa_particle.bone_tooltip");
     public static final IKey FORMS_EDITORS_AAA_PARTICLE_PAUSED = L10n.lang("bbs.ui.forms.editors.aaa_particle.paused");
+    public static final IKey FORMS_EDITORS_AAA_PARTICLE_RESTART = L10n.lang("bbs.ui.forms.editors.aaa_particle.restart");
     public static final IKey FORMS_EDITORS_AAA_PARTICLE_LOOP = L10n.lang("bbs.ui.forms.editors.aaa_particle.loop");
     public static final IKey FORMS_EDITORS_AAA_PARTICLE_LOOP_TOOLTIP = L10n.lang("bbs.ui.forms.editors.aaa_particle.loop_tooltip");
     public static final IKey FORMS_EDITORS_AAA_PARTICLE_DURATION = L10n.lang("bbs.ui.forms.editors.aaa_particle.duration");
@@ -369,6 +370,7 @@ public class UIKeys
     public static final IKey FORMS_EDITORS_AAA_PARTICLE_SORTING_LAYER = L10n.lang("bbs.ui.forms.editors.aaa_particle.sorting_layer");
     public static final IKey FORMS_EDITORS_AAA_PARTICLE_WORLD_SPACE = L10n.lang("bbs.ui.forms.editors.aaa_particle.world_space");
     public static final IKey FORMS_EDITORS_AAA_PARTICLE_WORLD_SPACE_TOOLTIP = L10n.lang("bbs.ui.forms.editors.aaa_particle.world_space_tooltip");
+    public static final IKey FORMS_EDITORS_AAA_PARTICLE_PREVIEW = L10n.lang("bbs.ui.forms.editors.aaa_particle.preview");
     public static final IKey FORMS_EDITORS_BILLBOARD_CROP = L10n.lang("bbs.ui.forms.editors.billboard.crop");
     public static final IKey FORMS_EDITORS_BILLBOARD_EDIT_CROP = L10n.lang("bbs.ui.forms.editors.billboard.edit_crop");
     public static final IKey FORMS_EDITORS_BILLBOARD_OFFSET_X = L10n.lang("bbs.ui.forms.editors.billboard.offset_x");

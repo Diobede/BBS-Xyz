@@ -30,17 +30,20 @@ public class UIReplaysOverlayPanel extends UIOverlayPanel
     public UIToggle enabled;
     public UITextbox label;
     public UITextbox nameTag;
+    public UITextbox group;
     public UIToggle shadow;
     public UITrackpad shadowSize;
     public UITrackpad looping;
     public UIToggle actor;
     public UIToggle fp;
     public UIToggle relative;
+    public UIToggle global;
     public UITrackpad relativeOffsetX;
     public UITrackpad relativeOffsetY;
     public UITrackpad relativeOffsetZ;
     public UIToggle axesPreview;
     public UIButton pickAxesPreviewBone;
+    public UIToggle overwriteGroupTransform;
 
     private Consumer<Replay> callback;
 
@@ -49,7 +52,21 @@ public class UIReplaysOverlayPanel extends UIOverlayPanel
         super(UIKeys.FILM_REPLAY_TITLE);
 
         this.callback = callback;
-        this.replays = new UIReplayList((l) -> this.callback.accept(l.isEmpty() ? null : l.get(0)), this, filmPanel);
+        this.replays = new UIReplayList((l) -> {
+            /* Check if a group was selected instead of a replay */
+            String selectedGroup = this.replays.getSelectedGroup();
+            
+            if (selectedGroup != null)
+            {
+                /* Group was selected - notify with null to indicate group mode */
+                this.callback.accept(null);
+            }
+            else
+            {
+                /* Replay was selected - notify normally */
+                this.callback.accept(l.isEmpty() ? null : l.get(0));
+            }
+        }, this, filmPanel);
 
         this.pickEdit = new UINestedEdit((editing) ->
         {
@@ -67,6 +84,8 @@ public class UIReplaysOverlayPanel extends UIOverlayPanel
         this.label.textbox.setPlaceholder(UIKeys.FILM_REPLAY_LABEL);
         this.nameTag = new UITextbox(1000, (s) -> this.edit((replay) -> replay.nameTag.set(s)));
         this.nameTag.textbox.setPlaceholder(UIKeys.FILM_REPLAY_NAME_TAG);
+        this.group = new UITextbox(1000, (s) -> this.edit((replay) -> replay.group.set(s)));
+        this.group.textbox.setPlaceholder(UIKeys.FILM_REPLAY_GROUP);
         this.shadow = new UIToggle(UIKeys.FILM_REPLAY_SHADOW, (b) -> this.edit((replay) -> replay.shadow.set(b.getValue())));
         this.shadowSize = new UITrackpad((v) -> this.edit((replay) -> replay.shadowSize.set(v.floatValue())));
         this.shadowSize.tooltip(UIKeys.FILM_REPLAY_SHADOW_SIZE);
@@ -88,6 +107,8 @@ public class UIReplaysOverlayPanel extends UIOverlayPanel
         });
         this.relative = new UIToggle(UIKeys.CAMERA_PANELS_RELATIVE, (b) -> this.edit((replay) -> replay.relative.set(b.getValue())));
         this.relative.tooltip(UIKeys.FILM_REPLAY_RELATIVE_TOOLTIP);
+        this.global = new UIToggle(UIKeys.FILM_REPLAY_GLOBAL, (b) -> this.edit((replay) -> replay.global.set(b.getValue())));
+        this.global.tooltip(UIKeys.FILM_REPLAY_GLOBAL_TOOLTIP);
         this.relativeOffsetX = new UITrackpad((v) -> this.edit((replay) -> BaseValue.edit(replay.relativeOffset, (value) -> value.get().x = v)));
         this.relativeOffsetY = new UITrackpad((v) -> this.edit((replay) -> BaseValue.edit(replay.relativeOffset, (value) -> value.get().y = v)));
         this.relativeOffsetZ = new UITrackpad((v) -> this.edit((replay) -> BaseValue.edit(replay.relativeOffset, (value) -> value.get().z = v)));
@@ -104,16 +125,21 @@ public class UIReplaysOverlayPanel extends UIOverlayPanel
                 this.edit((r) -> r.axesPreviewBone.set(s));
             });
         });
+        this.overwriteGroupTransform = new UIToggle(UIKeys.FILM_REPLAY_OVERWRITE_GROUP_TRANSFORM, (b) -> this.edit((replay) -> replay.overwriteGroupTransform.set(b.getValue())));
+        this.overwriteGroupTransform.tooltip(UIKeys.FILM_REPLAY_OVERWRITE_GROUP_TRANSFORM_TOOLTIP);
 
         this.properties = UI.scrollView(5, 6,
             UI.label(UIKeys.FILM_REPLAY_REPLAY),
             this.pickEdit, this.enabled,
             this.label, this.nameTag,
+            this.group,
             this.shadow, this.shadowSize,
             UI.label(UIKeys.FILM_REPLAY_LOOPING),
             this.looping, this.actor, this.fp,
             this.relative, UI.row(this.relativeOffsetX, this.relativeOffsetY, this.relativeOffsetZ),
-            this.axesPreview, this.pickAxesPreviewBone
+            this.global,
+            this.axesPreview, this.pickAxesPreviewBone,
+            this.overwriteGroupTransform
         );
         this.properties.relative(this.replays).x(1F).wTo(this.icons.area).h(1F);
         this.replays.relative(this.content).w(0.5F).h(1F);
@@ -144,6 +170,7 @@ public class UIReplaysOverlayPanel extends UIOverlayPanel
             this.enabled.setValue(replay.enabled.get());
             this.label.setText(replay.label.get());
             this.nameTag.setText(replay.nameTag.get());
+            this.group.setText(replay.group.get());
             this.shadow.setValue(replay.shadow.get());
             this.shadowSize.setValue(replay.shadowSize.get());
             this.looping.setValue(replay.looping.get());
@@ -153,7 +180,20 @@ public class UIReplaysOverlayPanel extends UIOverlayPanel
             this.relativeOffsetX.setValue(replay.relativeOffset.get().x);
             this.relativeOffsetY.setValue(replay.relativeOffset.get().y);
             this.relativeOffsetZ.setValue(replay.relativeOffset.get().z);
+            this.global.setValue(replay.global.get());
             this.axesPreview.setValue(replay.axesPreview.get());
+            this.overwriteGroupTransform.setValue(replay.overwriteGroupTransform.get());
+        }
+    }
+
+    public void setGroup(String groupName)
+    {
+        /* Hide all replay-specific properties when group is selected */
+        this.properties.setVisible(groupName != null);
+
+        if (groupName != null)
+        {
+            /* Will be handled by parent panel to show group keyframe editors */
         }
     }
 

@@ -109,6 +109,8 @@ public class BBSSettings
     public static ValueString cdnUrl;
     public static ValueString cdnToken;
 
+    public static ValueBoolean developerShowStructureForms;
+
     public static int primaryColor()
     {
         return primaryColor(Colors.A50);
@@ -260,5 +262,8 @@ public class BBSSettings
         builder.category("cdn");
         cdnUrl = builder.getString("url", "");
         cdnToken = builder.getString("token", "");
+
+        builder.category("developer");
+        developerShowStructureForms = builder.getBoolean("show_structure_forms", false);
     }
 }

@@ -1,6 +1,7 @@
 package mchorse.bbs_mod.camera;
 
 import mchorse.bbs_mod.utils.MathUtils;
+import mchorse.bbs_mod.utils.AABB;
 import mchorse.bbs_mod.utils.joml.Matrices;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.Vec3d;
@@ -20,6 +21,7 @@ public class Camera
     public Vector3f rotation = new Vector3f();
 
     private Vector3f relative = new Vector3f();
+    private AABB frustumAABB = new AABB();
 
     public Camera()
     {
@@ -74,10 +76,12 @@ public class Camera
 
     public Matrix4f updateView()
     {
-        return this.view.identity()
+        Matrix4f result = this.view.identity()
             .rotateZ(this.rotation.z)
             .rotateX(this.rotation.x)
             .rotateY(this.rotation.y);
+        this.updateFrustumAABB();
+        return result;
     }
 
     public void copy(Camera camera)
@@ -89,6 +93,7 @@ public class Camera
         this.far = camera.far;
         this.position.set(camera.position);
         this.rotation.set(camera.rotation);
+        this.frustumAABB.set(camera.frustumAABB);
     }
 
     public void set(Entity cameraEntity, float fov)
@@ -98,5 +103,20 @@ public class Camera
         this.position.set(eyePos.x, eyePos.y, eyePos.z);
         this.rotation.set(MathUtils.toRad(cameraEntity.getPitch()), MathUtils.toRad(cameraEntity.getHeadYaw() + 180F), 0);
         this.fov = fov;
+    }
+
+    public void updateFrustumAABB()
+    {
+        /* Frustum AABB is disabled */
+    }
+
+    public AABB getFrustumAABB()
+    {
+        return this.frustumAABB.copy();
+    }
+
+    public boolean frustumIntersects(AABB other)
+    {
+        return true;
     }
 }

@@ -47,7 +47,7 @@ public class FloatKeyframeFactory implements IKeyframeFactory<Float>
             );
         }
 
-        return IKeyframeFactory.super.interpolate(preA, a, b, postB, interpolation, x);
+        return (float) interpolation.interpolate(IInterp.context.set(preA.getValue(), a.getValue(), b.getValue(), postB.getValue(), x).setBoundary(preA == a, postB == b));
     }
 
     @Override

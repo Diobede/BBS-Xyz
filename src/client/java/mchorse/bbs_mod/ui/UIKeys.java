@@ -421,6 +421,10 @@ public class UIKeys
     public static final IKey FORMS_EDITORS_STRUCTURE_OPTIONS_LABEL = L10n.lang("bbs.ui.forms.editors.structure.options_label");
     public static final IKey FORMS_EDITORS_STRUCTURE_USE_CACHE = L10n.lang("bbs.ui.forms.editors.structure.use_cache");
     public static final IKey FORMS_EDITORS_STRUCTURE_USE_CACHE_TOOLTIP = L10n.lang("bbs.ui.forms.editors.structure.use_cache_tooltip");
+    public static final IKey FORMS_EDITORS_STRUCTURE_CHUNK_MESHING = L10n.lang("bbs.ui.forms.editors.structure.chunk_meshing");
+    public static final IKey FORMS_EDITORS_STRUCTURE_CHUNK_MESHING_TOOLTIP = L10n.lang("bbs.ui.forms.editors.structure.chunk_meshing_tooltip");
+    public static final IKey FORMS_EDITORS_STRUCTURE_DEBUG_CHUNKS = L10n.lang("bbs.ui.forms.editors.structure.debug_chunks");
+    public static final IKey FORMS_EDITORS_STRUCTURE_DEBUG_CHUNKS_TOOLTIP = L10n.lang("bbs.ui.forms.editors.structure.debug_chunks_tooltip");
     public static final IKey FORMS_EDITORS_STRUCTURE_MAX_BLOCKS_LABEL = L10n.lang("bbs.ui.forms.editors.structure.max_blocks_label");
     public static final IKey FORMS_EDITORS_STRUCTURE_MAX_BLOCKS_TOOLTIP = L10n.lang("bbs.ui.forms.editors.structure.max_blocks_tooltip");
     public static final IKey FORMS_EDITORS_STRUCTURE_LOD_LABEL = L10n.lang("bbs.ui.forms.editors.structure.lod_label");
@@ -428,6 +432,8 @@ public class UIKeys
     public static final IKey FORMS_EDITORS_STRUCTURE_LOD1_TOOLTIP = L10n.lang("bbs.ui.forms.editors.structure.lod1_tooltip");
     public static final IKey FORMS_EDITORS_STRUCTURE_LOD2_LABEL = L10n.lang("bbs.ui.forms.editors.structure.lod2_label");
     public static final IKey FORMS_EDITORS_STRUCTURE_LOD2_TOOLTIP = L10n.lang("bbs.ui.forms.editors.structure.lod2_tooltip");
+    public static final IKey FORMS_EDITORS_STRUCTURE_LIGHTING = L10n.lang("bbs.ui.forms.editors.structure.lighting");
+    public static final IKey FORMS_EDITORS_STRUCTURE_LIGHTING_TOOLTIP = L10n.lang("bbs.ui.forms.editors.structure.lighting_tooltip");
     public static final IKey FORMS_EDITORS_STRUCTURE_TITLE = L10n.lang("bbs.ui.forms.editors.structure.title");
     public static final IKey FORMS_EDITOR_BONE = L10n.lang("bbs.ui.forms.editor.bone");
     public static final IKey FORMS_EDITOR_CONTEXT_ADD = L10n.lang("bbs.ui.forms.editor.context.add");

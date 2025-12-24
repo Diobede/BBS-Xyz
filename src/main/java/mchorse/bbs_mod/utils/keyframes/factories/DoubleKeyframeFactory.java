@@ -47,7 +47,7 @@ public class DoubleKeyframeFactory implements IKeyframeFactory<Double>
             );
         }
 
-        return IKeyframeFactory.super.interpolate(preA, a, b, postB, interpolation, x);
+        return interpolation.interpolate(IInterp.context.set(preA.getValue(), a.getValue(), b.getValue(), postB.getValue(), x).setBoundary(preA == a, postB == b));
     }
 
     @Override

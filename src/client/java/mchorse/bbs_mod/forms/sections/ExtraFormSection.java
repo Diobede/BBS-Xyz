@@ -69,11 +69,8 @@ public class ExtraFormSection extends FormSection
         extra.addForm(vanillaParticle);
         extra.addForm(trail);
         
-        /* Only show structure form if developer setting is enabled */
-        if (mchorse.bbs_mod.BBSSettings.developerShowStructureForms.get())
-        {
-            extra.addForm(structure);
-        }
+        extra.addForm(structure);
+        
 
         this.mobsAnimals = new FormCategory(UIKeys.FORMS_CATEGORIES_MOBS_ANIMALS, this.parent.visibility.get("mobs_animals"));
         this.mobsNeutral = new FormCategory(UIKeys.FORMS_CATEGORIES_MOBS_NEUTRAL, this.parent.visibility.get("mobs_neutral"));

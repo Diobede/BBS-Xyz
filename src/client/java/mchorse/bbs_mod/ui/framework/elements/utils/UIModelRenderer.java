@@ -7,6 +7,8 @@ import mchorse.bbs_mod.camera.Camera;
 import mchorse.bbs_mod.forms.entities.IEntity;
 import mchorse.bbs_mod.forms.entities.StubEntity;
 import mchorse.bbs_mod.graphics.window.Window;
+import mchorse.bbs_mod.graphics.Draw;
+import mchorse.bbs_mod.utils.AABB;
 import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.utils.Factor;
@@ -234,6 +236,8 @@ public abstract class UIModelRenderer extends UIElement
         if (this.grid)
         {
             this.renderGrid(context);
+            AABB aabb = this.camera.getFrustumAABB();
+            Draw.renderBox(stack, aabb.x, aabb.y, aabb.z, aabb.w, aabb.h, aabb.d, 0, 0.5F, 1F, 0.5F);
         }
 
         this.renderUserModel(context);

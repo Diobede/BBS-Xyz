@@ -146,13 +146,6 @@ public class KeyframeChannel <T> extends ValueList<Keyframe<T>>
         }
 
         Keyframe<T> b = this.list.get(low);
-
-        if (b.getTick() == Math.floor(ticks) && low < size - 1)
-        {
-            low += 1;
-            b = this.list.get(low);
-        }
-
         Keyframe<T> a = low - 1 >= 0 ? this.list.get(low - 1) : b;
         KeyframeSegment<T> segment = new KeyframeSegment<>(a, b);
 

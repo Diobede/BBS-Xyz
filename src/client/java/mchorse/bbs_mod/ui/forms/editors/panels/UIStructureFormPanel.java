@@ -25,6 +25,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import mchorse.bbs_mod.utils.colors.Colors;
+import mchorse.bbs_mod.forms.utils.StructureLoader;
+import mchorse.bbs_mod.ui.framework.elements.utils.UILabel;
+
 /**
  * Structure Form Panel
  *
@@ -36,9 +40,13 @@ public class UIStructureFormPanel extends UIFormPanel<StructureForm>
     /* Structure file path */
     public UITextbox structurePath;
     public UIButton pickStructure;
+    public UILabel statusLabel;
 
     /* Rendering options */
     public UIToggle useCache;
+    public UIToggle chunkMeshing;
+    public UIToggle lighting;
+    public UIToggle debugChunkBoundaries;
     public UITrackpad maxBlocks;
 
     /* LOD settings */
@@ -50,7 +58,10 @@ public class UIStructureFormPanel extends UIFormPanel<StructureForm>
         super(editor);
 
         /* Structure path */
-        this.structurePath = new UITextbox(500, (t) -> this.form.structurePath.set(t));
+        this.structurePath = new UITextbox(500, (t) -> {
+            this.form.structurePath.set(t);
+            this.validatePath(t);
+        });
         this.structurePath.tooltip(UIKeys.FORMS_EDITORS_STRUCTURE_PATH_TOOLTIP);
 
         this.pickStructure = new UIButton(UIKeys.FORMS_EDITORS_STRUCTURE_PICK, (b) ->
@@ -64,6 +75,7 @@ public class UIStructureFormPanel extends UIFormPanel<StructureForm>
                         String path = link.toString();
                         this.form.structurePath.set(path);
                         this.structurePath.setText(path);
+                        this.validatePath(path);
                         
                         /* Clear renderer cache and trigger reload */
                         if (mchorse.bbs_mod.forms.FormUtilsClient.getRenderer(this.form) instanceof mchorse.bbs_mod.forms.renderers.StructureFormRenderer renderer)
@@ -80,9 +92,21 @@ public class UIStructureFormPanel extends UIFormPanel<StructureForm>
             UIOverlay.addOverlay(this.getContext(), picker);
         });
 
+        this.statusLabel = UI.label(UIKeys.PANELS_MODALS_EMPTY).color(Colors.RED);
+
         /* Cache toggle */
         this.useCache = new UIToggle(UIKeys.FORMS_EDITORS_STRUCTURE_USE_CACHE, (b) -> this.form.useCache.set(b.getValue()));
         this.useCache.tooltip(UIKeys.FORMS_EDITORS_STRUCTURE_USE_CACHE_TOOLTIP);
+
+        /* Chunk Meshing toggles */
+        this.chunkMeshing = new UIToggle(UIKeys.FORMS_EDITORS_STRUCTURE_CHUNK_MESHING, (b) -> this.form.chunkMeshing.set(b.getValue()));
+        this.chunkMeshing.tooltip(UIKeys.FORMS_EDITORS_STRUCTURE_CHUNK_MESHING_TOOLTIP);
+        
+        this.lighting = new UIToggle(UIKeys.FORMS_EDITORS_STRUCTURE_LIGHTING, (b) -> this.form.lighting.set(b.getValue()));
+        this.lighting.tooltip(UIKeys.FORMS_EDITORS_STRUCTURE_LIGHTING_TOOLTIP);
+        
+        this.debugChunkBoundaries = new UIToggle(UIKeys.FORMS_EDITORS_STRUCTURE_DEBUG_CHUNKS, (b) -> this.form.debugChunkBoundaries.set(b.getValue()));
+        this.debugChunkBoundaries.tooltip(UIKeys.FORMS_EDITORS_STRUCTURE_DEBUG_CHUNKS_TOOLTIP);
 
         /* Max blocks limiter */
         this.maxBlocks = new UITrackpad((v) -> this.form.maxBlocks.set(v.intValue()));
@@ -101,18 +125,59 @@ public class UIStructureFormPanel extends UIFormPanel<StructureForm>
         /* Layout */
         this.options.add(
             UI.label(UIKeys.FORMS_EDITORS_STRUCTURE_PATH_LABEL),
-            this.structurePath,
-            this.pickStructure,
-            UI.label(UIKeys.FORMS_EDITORS_STRUCTURE_OPTIONS_LABEL),
+            UI.row(this.structurePath, this.pickStructure),
+            this.statusLabel,
+
+            UI.label(UIKeys.FORMS_EDITORS_STRUCTURE_OPTIONS_LABEL).marginTop(12),
             this.useCache,
+            this.chunkMeshing,
+            this.debugChunkBoundaries,
+            
             UI.label(UIKeys.FORMS_EDITORS_STRUCTURE_MAX_BLOCKS_LABEL),
             this.maxBlocks,
-            UI.label(UIKeys.FORMS_EDITORS_STRUCTURE_LOD_LABEL),
-            UI.label(UIKeys.FORMS_EDITORS_STRUCTURE_LOD1_LABEL),
-            this.lodDistance1,
-            UI.label(UIKeys.FORMS_EDITORS_STRUCTURE_LOD2_LABEL),
-            this.lodDistance2
+            
+            UI.label(UIKeys.FORMS_EDITORS_STRUCTURE_LOD_LABEL).marginTop(12),
+            UI.row(
+                UI.column(UI.label(UIKeys.FORMS_EDITORS_STRUCTURE_LOD1_LABEL), this.lodDistance1),
+                UI.column(UI.label(UIKeys.FORMS_EDITORS_STRUCTURE_LOD2_LABEL), this.lodDistance2)
+            )
         );
+    }
+
+    private void validatePath(String path)
+    {
+        if (path.isEmpty())
+        {
+            this.statusLabel.label = UIKeys.PANELS_MODALS_EMPTY;
+            return;
+        }
+        
+        /* Basic validation */
+        boolean valid = true;
+        
+        if (!path.startsWith("world:") && !path.startsWith("minecraft:") && !path.startsWith("assets:"))
+        {
+            /* Check if file exists (basic check) */
+            File file = new File(mchorse.bbs_mod.BBSMod.getAssetsFolder(), "structures/" + path + (path.endsWith(".nbt") ? "" : ".nbt"));
+            if (!file.exists())
+            {
+                file = new File(path); // Absolute
+                if (!file.exists())
+                {
+                    valid = false;
+                }
+            }
+        }
+        
+        if (valid)
+        {
+            this.statusLabel.label = UIKeys.PANELS_MODALS_EMPTY;
+        }
+        else
+        {
+            this.statusLabel.label = mchorse.bbs_mod.l10n.keys.IKey.raw("File not found!");
+            this.statusLabel.color(Colors.RED);
+        }
     }
 
     @Override
@@ -122,9 +187,13 @@ public class UIStructureFormPanel extends UIFormPanel<StructureForm>
 
         this.structurePath.setText(form.structurePath.get());
         this.useCache.setValue(form.useCache.get());
+        this.chunkMeshing.setValue(form.chunkMeshing.get());
+        this.debugChunkBoundaries.setValue(form.debugChunkBoundaries.get());
         this.maxBlocks.setValue(form.maxBlocks.get());
         this.lodDistance1.setValue(form.lodDistance1.get());
         this.lodDistance2.setValue(form.lodDistance2.get());
+        
+        this.validatePath(form.structurePath.get());
     }
 
     /**

@@ -104,25 +104,30 @@ public abstract class FormRenderer <T extends Form>
         boolean isPicking = context.stencilMap != null;
 
         context.stack.push();
-        this.applyTransforms(context.stack, context.getTransition());
-
-        float lf = 1F - MathUtils.clamp(this.form.lighting.get(), 0F, 1F);
-        int u = context.light & '\uffff';
-        int v = context.light >> 16 & '\uffff';
-
-        u = (int) Lerps.lerp(u, LightmapTextureManager.MAX_BLOCK_LIGHT_COORDINATE, lf);
-        context.light = u | v << 16;
-
-        this.render3D(context);
-
-        if (isPicking)
+        try
         {
-            this.updateStencilMap(context);
+            this.applyTransforms(context.stack, context.getTransition());
+
+            float lf = 1F - MathUtils.clamp(this.form.lighting.get(), 0F, 1F);
+            int u = context.light & '\uffff';
+            int v = context.light >> 16 & '\uffff';
+
+            u = (int) Lerps.lerp(u, LightmapTextureManager.MAX_BLOCK_LIGHT_COORDINATE, lf);
+            context.light = u | v << 16;
+
+            this.render3D(context);
+
+            if (isPicking)
+            {
+                this.updateStencilMap(context);
+            }
+
+            this.renderBodyParts(context);
         }
-
-        this.renderBodyParts(context);
-
-        context.stack.pop();
+        finally
+        {
+            context.stack.pop();
+        }
 
         context.light = light;
 

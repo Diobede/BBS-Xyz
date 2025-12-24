@@ -105,6 +105,7 @@ public class BBSSettings
     public static ValueBoolean audioWaveformTime;
 
     public static ValueBoolean occlusionCulling;
+    public static ValueBoolean structureOptimization;
 
     public static ValueString cdnUrl;
     public static ValueString cdnToken;
@@ -258,6 +259,7 @@ public class BBSSettings
 
         builder.category("rendering");
         occlusionCulling = builder.getBoolean("occlusion_culling", false);
+        structureOptimization = builder.getBoolean("structure_optimization", true);
 
         builder.category("cdn");
         cdnUrl = builder.getString("url", "");

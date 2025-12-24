@@ -9,6 +9,7 @@ import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
+import net.minecraft.util.math.Direction;
 
 import java.io.DataInputStream;
 import java.io.File;
@@ -35,6 +36,7 @@ public class StructureLoader
         public final List<BlockEntry> blocks;
         public final Map<BlockPos, BlockState> blockMap;
         private Set<BlockPos> occludedBlocks;
+        private Map<BlockPos, java.util.EnumSet<Direction>> visibleFaces;
 
         public Structure(Vec3i size, List<BlockEntry> blocks)
         {
@@ -68,6 +70,21 @@ public class StructureLoader
             return this.occludedBlocks.contains(pos);
         }
         
+        /**
+         * Get the set of visible faces for a given block position.
+         * Lazily computes face visibility the first time it's needed.
+         */
+        public java.util.EnumSet<Direction> getVisibleFaces(BlockPos pos)
+        {
+            if (this.visibleFaces == null)
+            {
+                this.computeVisibleFaces();
+            }
+            
+            java.util.EnumSet<Direction> faces = this.visibleFaces.get(pos);
+            return faces == null ? java.util.EnumSet.noneOf(Direction.class) : faces;
+        }
+        
         private void computeOcclusion()
         {
             this.occludedBlocks = new HashSet<>();
@@ -84,7 +101,7 @@ public class StructureLoader
         private boolean isFullyOccluded(BlockPos pos)
         {
             // Check all 6 faces
-            for (net.minecraft.util.math.Direction direction : net.minecraft.util.math.Direction.values())
+            for (Direction direction : Direction.values())
             {
                 BlockPos neighbor = pos.offset(direction);
                 BlockState neighborState = this.getBlockAt(neighbor);
@@ -98,6 +115,41 @@ public class StructureLoader
 
             // All neighbors are opaque - block is fully hidden
             return true;
+        }
+        
+        /**
+         * Compute visible faces for each block based on adjacency.
+         * A face is considered visible if the adjacent block is:
+         * - air or missing in the structure; or
+         * - non-opaque (e.g., glass, leaves, fences).
+         */
+        private void computeVisibleFaces()
+        {
+            this.visibleFaces = new HashMap<>();
+            
+            for (BlockEntry entry : this.blocks)
+            {
+                BlockPos pos = entry.pos;
+                java.util.EnumSet<Direction> faces = java.util.EnumSet.noneOf(Direction.class);
+                
+                for (Direction dir : Direction.values())
+                {
+                    BlockPos neighborPos = pos.offset(dir);
+                    BlockState neighborState = this.getBlockAt(neighborPos);
+                    
+                    boolean exposed = neighborState == null || neighborState.isAir() || !neighborState.isOpaque();
+                    
+                    if (exposed)
+                    {
+                        faces.add(dir);
+                    }
+                }
+                
+                if (!faces.isEmpty())
+                {
+                    this.visibleFaces.put(pos, faces);
+                }
+            }
         }
     }
 

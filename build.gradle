@@ -61,6 +61,8 @@ dependencies {
 
 	modImplementation "org.anarres:jcpp:1.4.14"
 	modImplementation "io.github.douira:glsl-transformer:2.0.0-pre13"
+	testImplementation "org.junit.jupiter:junit-jupiter:5.10.1"
+	testImplementation "org.joml:joml:1.10.5"
 }
 
 processResources {
@@ -85,6 +87,9 @@ java {
 	targetCompatibility = JavaVersion.VERSION_17
 }
 
+test {
+	useJUnitPlatform()
+}
 jar {
 	from("LICENSE") {
 		rename { "${it}_${project.base.archivesName.get()}"}

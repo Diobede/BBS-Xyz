@@ -23,6 +23,7 @@ public class BBSShaders
     private static ShaderProgram pickerBillboardNoShading;
     private static ShaderProgram pickerParticles;
     private static ShaderProgram pickerModels;
+    private static ShaderProgram structure;
 
     static
     {
@@ -99,6 +100,11 @@ public class BBSShaders
     public static ShaderProgram getPickerModelsProgram()
     {
         return pickerModels;
+    }
+
+    public static ShaderProgram getStructureProgram()
+    {
+        return structure;
     }
 
     private static class ProxyResourceFactory implements ResourceFactory

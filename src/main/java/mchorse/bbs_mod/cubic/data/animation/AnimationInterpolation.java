@@ -49,6 +49,7 @@ public class AnimationInterpolation
         GECKO_LIB_NAMES.put("easeInBounce", Interpolations.BOUNCE_OUT);
         GECKO_LIB_NAMES.put("easeOutBounce", Interpolations.BOUNCE_IN);
         GECKO_LIB_NAMES.put("easeInOutBounce", Interpolations.BOUNCE_INOUT);
+        GECKO_LIB_NAMES.put("bspline", Interpolations.BSPLINE);
     }
 
     public static IInterp byName(String easing)

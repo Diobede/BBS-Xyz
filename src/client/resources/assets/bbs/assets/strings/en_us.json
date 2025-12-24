@@ -1115,6 +1115,7 @@
     "interpolations.bounce_in": "Bounce In",
     "interpolations.bounce_inout": "Bounce In/out",
     "interpolations.bounce_out": "Bounce Out",
+    "interpolations.bspline": "B-Spline",
     "interpolations.circle_in": "Circle In",
     "interpolations.circle_inout": "Circle In/out",
     "interpolations.circle_out": "Circle Out",

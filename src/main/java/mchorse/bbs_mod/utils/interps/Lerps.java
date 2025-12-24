@@ -40,6 +40,36 @@ public class Lerps
     }
 
     /**
+     * Cubic interpolation using Uniform B-Spline.
+     * 
+     * This method implements the standard Uniform Cubic B-Spline basis functions.
+     * It provides C2 continuity (continuous position, velocity, and acceleration)
+     * at the cost of not passing through the control points (approximating spline).
+     * 
+     * The basis matrix used is:
+     *     | -1  3 -3  1 |
+     * 1/6 |  3 -6  3  0 |
+     *     | -3  0  3  0 |
+     *     |  1  4  1  0 |
+     * 
+     * @param y0 - Control point P(i-1)
+     * @param y1 - Control point P(i)
+     * @param y2 - Control point P(i+1)
+     * @param y3 - Control point P(i+2)
+     * @param x - Interpolation factor t between 0 and 1
+     * @return The interpolated value
+     */
+    public static double bSpline(double y0, double y1, double y2, double y3, double x)
+    {
+        double a = -y0 + 3 * y1 - 3 * y2 + y3;
+        double b = 3 * y0 - 6 * y1 + 3 * y2;
+        double c = -3 * y0 + 3 * y2;
+        double d = y0 + 4 * y1 + y2;
+
+        return (((a * x + b) * x + c) * x + d) / 6.0;
+    }
+
+    /**
      * Cubic interpolation between y1 and y2. Taken from paul's website.
      *
      * @param y0 - points[x-1]

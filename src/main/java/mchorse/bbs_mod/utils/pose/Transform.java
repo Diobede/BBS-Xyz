@@ -39,9 +39,14 @@ public class Transform implements IMapSerializable
 
     private void lerp(Vector3f target, Vector3f preA, Vector3f a, Vector3f b, Vector3f postB, IInterp interp, float x)
     {
-        target.x = (float) interp.interpolate(IInterp.context.set(preA.x, a.x, b.x, postB.x, x));
-        target.y = (float) interp.interpolate(IInterp.context.set(preA.y, a.y, b.y, postB.y, x));
-        target.z = (float) interp.interpolate(IInterp.context.set(preA.z, a.z, b.z, postB.z, x));
+        double ax = a.x, ay = a.y, az = a.z;
+        double bx = b.x, by = b.y, bz = b.z;
+        double preAx = preA.x, preAy = preA.y, preAz = preA.z;
+        double postBx = postB.x, postBy = postB.y, postBz = postB.z;
+
+        target.x = (float) interp.interpolate(IInterp.context.set(preAx, ax, bx, postBx, x).setBoundary(preA == a, postB == b));
+        target.y = (float) interp.interpolate(IInterp.context.set(preAy, ay, by, postBy, x).setBoundary(preA == a, postB == b));
+        target.z = (float) interp.interpolate(IInterp.context.set(preAz, az, bz, postBz, x).setBoundary(preA == a, postB == b));
     }
 
     public void identity()

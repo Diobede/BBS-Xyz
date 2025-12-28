@@ -111,6 +111,7 @@ public class BBSSettings
     public static ValueString cdnToken;
 
     public static ValueBoolean developerShowStructureForms;
+    public static ValueBoolean developerNewUI;
 
     public static int primaryColor()
     {
@@ -267,5 +268,6 @@ public class BBSSettings
 
         builder.category("developer");
         developerShowStructureForms = builder.getBoolean("show_structure_forms", false);
+        developerNewUI = builder.getBoolean("new_ui", false);
     }
 }

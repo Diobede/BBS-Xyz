@@ -57,6 +57,8 @@
     "bbs.config.cdn.url-comment": "URL to the CDN that is responsible for synchronizing assets",
     "bbs.config.developer.show_structure_forms": "Show structure forms",
     "bbs.config.developer.show_structure_forms-comment": "When enabled, structure forms will appear in the form picker. Structure forms are experimental and may cause performance issues.",
+    "bbs.config.developer.new_ui": "New UI (testing)",
+    "bbs.config.developer.new_ui-comment": "Enables the new experimental docking UI system (requires restart)",
     "bbs.config.developer.title": "Developer",
     "bbs.config.developer.tooltip": "Developer and experimental options",
     "bbs.config.chroma_sky.billboard": "Billboard distance",

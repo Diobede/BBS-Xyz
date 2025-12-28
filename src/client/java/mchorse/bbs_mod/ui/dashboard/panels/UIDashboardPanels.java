@@ -6,6 +6,8 @@ import mchorse.bbs_mod.ui.framework.UIContext;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.UIScrollView;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIIcon;
+import mchorse.bbs_mod.ui.framework.elements.docking.UIDockable;
+import mchorse.bbs_mod.ui.framework.elements.docking.UIDockingRoot;
 import mchorse.bbs_mod.ui.framework.elements.events.UIEvent;
 import mchorse.bbs_mod.ui.framework.elements.utils.Batcher2D;
 import mchorse.bbs_mod.ui.framework.elements.utils.UIRenderable;
@@ -16,16 +18,32 @@ import mchorse.bbs_mod.utils.Direction;
 import mchorse.bbs_mod.utils.colors.Colors;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class UIDashboardPanels extends UIElement
 {
     public List<UIDashboardPanel> panels = new ArrayList<>();
+    public Map<UIDashboardPanel, PanelData> panelData = new HashMap<>();
     public UIDashboardPanel panel;
 
+    public UIDockingRoot dockRoot;
     public UIElement taskBar;
     public UIElement pinned;
     public UIScrollView panelButtons;
+
+    public static class PanelData
+    {
+        public IKey title;
+        public Icon icon;
+        
+        public PanelData(IKey title, Icon icon)
+        {
+            this.title = title;
+            this.icon = icon;
+        }
+    }
 
     public static void renderHighlight(Batcher2D batcher, Area area)
     {
@@ -45,6 +63,10 @@ public class UIDashboardPanels extends UIElement
 
     public UIDashboardPanels()
     {
+        this.dockRoot = new UIDockingRoot();
+        this.dockRoot.relative(this).w(1F).h(1F, -20);
+        this.add(this.dockRoot);
+
         this.taskBar = new UIElement();
         this.taskBar.relative(this).y(1F, -20).w(1F).h(20);
         this.pinned = new UIElement();
@@ -106,33 +128,70 @@ public class UIDashboardPanels extends UIElement
     {
         UIDashboardPanel lastPanel = this.panel;
 
-        if (this.panel != null)
+        if (BBSSettings.developerNewUI.get())
         {
-            this.panel.disappear();
-            this.panel.removeFromParent();
+            // If panel is already in dock, don't re-add, just update "active" reference
+            if (this.dockRoot.rootNode.contains(panel))
+            {
+                this.panel = panel;
+                this.getEvents().emit(new PanelEvent(this, lastPanel, panel));
+                return;
+            }
+
+            if (this.panel != null && !this.dockRoot.rootNode.contains(this.panel))
+            {
+                this.panel.disappear();
+            }
+
+            this.panel = panel;
+
+            this.getEvents().emit(new PanelEvent(this, lastPanel, panel));
+
+            if (this.panel != null)
+            {
+                PanelData data = this.panelData.get(panel);
+                UIDockable dockable = new UIDockable(data != null ? data.title : IKey.raw("Unknown"), data != null ? data.icon : null, panel);
+                
+                // If dock is empty, set as root. If not, split root horizontally to add new panel
+                if (this.dockRoot.rootNode.content == null && this.dockRoot.rootNode.childA == null)
+                {
+                    this.dockRoot.setRootContent(dockable);
+                }
+                else
+                {
+                    // Add to the side (split root)
+                    this.dockRoot.rootNode.split(false, dockable, false);
+                }
+                
+                this.panel.appear();
+            }
         }
-
-        this.panel = panel;
-
-        this.getEvents().emit(new PanelEvent(this, lastPanel, panel));
-
-        if (this.panel != null)
+        else
         {
-            this.setPanelPlacement(panel);
+            if (this.panel != null)
+            {
+                this.panel.disappear();
+                this.panel.removeFromParent();
+            }
 
-            this.prepend(this.panel);
-            this.panel.appear();
+            this.panel = panel;
+            this.add(this.panel);
+            this.panel.relative(this).w(1F).h(1F, -20);
             this.panel.resize();
-        }
-    }
 
-    private void setPanelPlacement(UIDashboardPanel panel)
-    {
-        panel.resetFlex().relative(this).w(1F).h(1F, -20);
+            this.getEvents().emit(new PanelEvent(this, lastPanel, panel));
+
+            if (this.panel != null)
+            {
+                this.panel.appear();
+            }
+        }
     }
 
     public UIIcon registerPanel(UIDashboardPanel panel, IKey tooltip, Icon icon)
     {
+        this.panelData.put(panel, new PanelData(tooltip, icon));
+        
         UIIcon button = new UIIcon(icon, (b) -> this.setPanel(panel));
 
         button.tooltip(tooltip, Direction.TOP);

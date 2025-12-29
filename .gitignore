@@ -44,3 +44,7 @@ replay_*.log
 # backup
 
 bbs-mod-backup/
+cml_fork/
+wiki/
+effekseer/
+AAAparticle/

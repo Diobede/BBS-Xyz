@@ -2,6 +2,7 @@ package mchorse.bbs_mod.forms.renderers;
 
 import mchorse.bbs_mod.client.BBSRendering;
 import mchorse.bbs_mod.forms.FormUtilsClient;
+import mchorse.bbs_mod.forms.ICleanable;
 import mchorse.bbs_mod.forms.entities.IEntity;
 import mchorse.bbs_mod.forms.forms.BodyPart;
 import mchorse.bbs_mod.forms.forms.Form;
@@ -29,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public abstract class FormRenderer <T extends Form>
+public abstract class FormRenderer <T extends Form> implements ICleanable
 {
     protected T form;
 
@@ -42,6 +43,10 @@ public abstract class FormRenderer <T extends Form>
     {
         return this.form;
     }
+
+    @Override
+    public void cleanup()
+    {}
 
     public List<String> getBones()
     {
@@ -104,30 +109,25 @@ public abstract class FormRenderer <T extends Form>
         boolean isPicking = context.stencilMap != null;
 
         context.stack.push();
-        try
+        this.applyTransforms(context.stack, context.getTransition());
+
+        float lf = 1F - MathUtils.clamp(this.form.lighting.get(), 0F, 1F);
+        int u = context.light & '\uffff';
+        int v = context.light >> 16 & '\uffff';
+
+        u = (int) Lerps.lerp(u, LightmapTextureManager.MAX_BLOCK_LIGHT_COORDINATE, lf);
+        context.light = u | v << 16;
+
+        this.render3D(context);
+
+        if (isPicking)
         {
-            this.applyTransforms(context.stack, context.getTransition());
-
-            float lf = 1F - MathUtils.clamp(this.form.lighting.get(), 0F, 1F);
-            int u = context.light & '\uffff';
-            int v = context.light >> 16 & '\uffff';
-
-            u = (int) Lerps.lerp(u, LightmapTextureManager.MAX_BLOCK_LIGHT_COORDINATE, lf);
-            context.light = u | v << 16;
-
-            this.render3D(context);
-
-            if (isPicking)
-            {
-                this.updateStencilMap(context);
-            }
-
-            this.renderBodyParts(context);
+            this.updateStencilMap(context);
         }
-        finally
-        {
-            context.stack.pop();
-        }
+
+        this.renderBodyParts(context);
+
+        context.stack.pop();
 
         context.light = light;
 

@@ -126,6 +126,17 @@ public class ModelBlockEntity extends BlockEntity
     }
 
     @Override
+    public void markRemoved()
+    {
+        super.markRemoved();
+        
+        if (this.properties != null)
+        {
+            this.properties.cleanup();
+        }
+    }
+
+    @Override
     public void readNbt(NbtCompound nbt)
     {
         super.readNbt(nbt);

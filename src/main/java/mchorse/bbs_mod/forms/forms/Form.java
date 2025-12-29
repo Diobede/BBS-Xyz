@@ -132,6 +132,14 @@ public abstract class Form extends ValueGroup
     {
         this.renderer = renderer;
     }
+    
+    public void cleanup()
+    {
+        if (this.renderer instanceof mchorse.bbs_mod.forms.ICleanable)
+        {
+            ((mchorse.bbs_mod.forms.ICleanable) this.renderer).cleanup();
+        }
+    }
 
     public Form getParentForm()
     {

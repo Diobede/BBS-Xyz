@@ -67,12 +67,28 @@ public class ActorEntity extends LivingEntity implements IEntityFormProvider
     {
         Form lastForm = this.form;
 
+        if (lastForm != null)
+        {
+            lastForm.cleanup();
+        }
+
         this.form = form;
 
         if (!this.getWorld().isClient())
         {
             if (lastForm != null) lastForm.onDemorph(this);
             if (form != null) form.onMorph(this);
+        }
+    }
+
+    @Override
+    public void remove(RemovalReason reason)
+    {
+        super.remove(reason);
+
+        if (this.form != null)
+        {
+            this.form.cleanup();
         }
     }
 

@@ -7,6 +7,7 @@ import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.framework.elements.UIScrollView;
 import mchorse.bbs_mod.ui.framework.elements.buttons.UIIcon;
 import mchorse.bbs_mod.ui.framework.elements.docking.UIDockable;
+import mchorse.bbs_mod.ui.framework.elements.docking.UIDockingNode;
 import mchorse.bbs_mod.ui.framework.elements.docking.UIDockingRoot;
 import mchorse.bbs_mod.ui.framework.elements.events.UIEvent;
 import mchorse.bbs_mod.ui.framework.elements.utils.Batcher2D;
@@ -124,67 +125,129 @@ public class UIDashboardPanels extends UIElement
         }
     }
 
-    public void setPanel(UIDashboardPanel panel)
+    public void setPanel(UIDashboardPanel panel, boolean docked)
     {
         UIDashboardPanel lastPanel = this.panel;
 
         if (BBSSettings.developerNewUI.get())
         {
-            // If panel is already in dock, don't re-add, just update "active" reference
-            if (this.dockRoot.rootNode.contains(panel))
+            if (docked)
             {
-                this.panel = panel;
-                this.getEvents().emit(new PanelEvent(this, lastPanel, panel));
-                return;
-            }
-
-            if (this.panel != null && !this.dockRoot.rootNode.contains(this.panel))
-            {
-                this.panel.disappear();
-            }
-
-            this.panel = panel;
-
-            this.getEvents().emit(new PanelEvent(this, lastPanel, panel));
-
-            if (this.panel != null)
-            {
+                // Docking logic (Right Click)
+                if (this.dockRoot.rootNode.contains(panel))
+                {
+                    // Already docked, just activate it
+                    // Find the dockable containing this panel and make sure it's visible?
+                    // Dockables are always visible.
+                    this.panel = panel;
+                    this.getEvents().emit(new PanelEvent(this, lastPanel, panel));
+                    return;
+                }
+                
+                // Add to dock
                 PanelData data = this.panelData.get(panel);
                 UIDockable dockable = new UIDockable(data != null ? data.title : IKey.raw("Unknown"), data != null ? data.icon : null, panel);
                 
-                // If dock is empty, set as root. If not, split root horizontally to add new panel
-                if (this.dockRoot.rootNode.content == null && this.dockRoot.rootNode.childA == null)
+                if (this.dockRoot.rootNode.isLeaf() && this.dockRoot.rootNode.getContent() == null)
                 {
                     this.dockRoot.setRootContent(dockable);
                 }
                 else
                 {
-                    // Add to the side (split root)
                     this.dockRoot.rootNode.split(false, dockable, false);
                 }
-                
-                this.panel.appear();
             }
+            else
+            {
+                // Preview/Floating logic (Left Click)
+                // We want to replace the content of the currently active or first docking node with this panel.
+                
+                // 1. Check if panel is already somewhere in the dock
+                if (this.dockRoot.rootNode.contains(panel))
+                {
+                    this.panel = panel;
+                    this.getEvents().emit(new PanelEvent(this, lastPanel, panel));
+                    return;
+                }
+                
+                // 2. If not, find a target node to replace content
+                UIDockingNode target = null;
+                
+                // If the root is empty, it's the target
+                if (this.dockRoot.rootNode.isLeaf() && this.dockRoot.rootNode.getContent() == null)
+                {
+                    target = this.dockRoot.rootNode;
+                }
+                else
+                {
+                    // Find the first leaf node
+                    target = findFirstLeaf(this.dockRoot.rootNode);
+                }
+                
+                if (target != null)
+                {
+                    // Before replacing, we should check if the current content is "docked" (persistent) or "preview" (transient)?
+                    // For now, we just swap.
+                    // IMPORTANT: We need to remove the panel from its previous parent if it was attached elsewhere
+                    panel.removeFromParent();
+                    
+                    PanelData data = this.panelData.get(panel);
+                    // Create new dockable wrapper
+                    UIDockable dockable = new UIDockable(data != null ? data.title : IKey.raw("Unknown"), data != null ? data.icon : null, panel);
+                    
+                    target.setContent(dockable);
+                    target.resize(); // Force resize to ensure layout updates immediately
+                }
+            }
+            
+            this.panel = panel;
+            this.getEvents().emit(new PanelEvent(this, lastPanel, panel));
+            if (this.panel != null) this.panel.appear();
         }
         else
         {
-            if (this.panel != null)
-            {
-                this.panel.disappear();
-                this.panel.removeFromParent();
-            }
+            // Legacy behavior
+            this.setPanelLegacy(panel);
+        }
+    }
 
-            this.panel = panel;
-            this.add(this.panel);
-            this.panel.relative(this).w(1F).h(1F, -20);
-            this.panel.resize();
+    private UIDockingNode findFirstLeaf(UIDockingNode node)
+    {
+        if (node.isLeaf()) return node;
+        
+        if (!node.getChildren().isEmpty())
+        {
+             UIElement child = (UIElement) node.getChildren().get(0);
+             if (child instanceof UIDockingNode) return findFirstLeaf((UIDockingNode) child);
+        }
+        return null;
+    }
 
-            this.getEvents().emit(new PanelEvent(this, lastPanel, panel));
+    public void setPanel(UIDashboardPanel panel)
+    {
+        // Default to docked=true for legacy calls, but for our new UI interactions we specify
+        this.setPanel(panel, true); 
+    }
 
-            if (this.panel != null)
-            {
-                this.panel.appear();
-            }
+    public void setPanelLegacy(UIDashboardPanel panel)
+    {
+        UIDashboardPanel lastPanel = this.panel;
+        if (this.panel != null)
+        {
+            this.panel.disappear();
+            this.panel.removeFromParent();
+        }
+
+        this.panel = panel;
+        this.add(this.panel);
+        this.panel.relative(this).w(1F).h(1F, -20);
+        this.panel.resize();
+
+        this.getEvents().emit(new PanelEvent(this, lastPanel, panel));
+
+        if (this.panel != null)
+        {
+            this.panel.appear();
         }
     }
 
@@ -192,7 +255,33 @@ public class UIDashboardPanels extends UIElement
     {
         this.panelData.put(panel, new PanelData(tooltip, icon));
         
-        UIIcon button = new UIIcon(icon, (b) -> this.setPanel(panel));
+        UIIcon button = new UIIcon(icon, (b) ->
+         {
+             // Default left click handled here if New UI is OFF
+             if (!BBSSettings.developerNewUI.get())
+             {
+                 this.setPanel(panel);
+             }
+             else
+             {
+                 // New UI Left Click: Open without docking (Replace active/first)
+                 this.setPanel(panel, false);
+             }
+         })
+         {
+             @Override
+             public boolean subMouseClicked(UIContext context)
+             {
+                 // Custom right click handling if New UI is ON
+                 if (BBSSettings.developerNewUI.get() && this.area.isInside(context) && context.mouseButton == 1)
+                 {
+                     UIDashboardPanels.this.setPanel(panel, true); // Docked = true
+                     return true;
+                 }
+                 
+                 return super.subMouseClicked(context);
+             }
+         };
 
         button.tooltip(tooltip, Direction.TOP);
 

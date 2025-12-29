@@ -118,6 +118,11 @@ public class Interpolation extends BaseValue implements IInterp
         this.args.v4 = v4;
         this.postNotify();
     }
+    
+    public EasingArgs getArgs()
+    {
+        return this.args;
+    }
 
     @Override
     public boolean equals(Object obj)

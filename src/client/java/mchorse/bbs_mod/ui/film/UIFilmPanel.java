@@ -19,6 +19,9 @@ import mchorse.bbs_mod.film.Film;
 import mchorse.bbs_mod.film.Recorder;
 import mchorse.bbs_mod.film.replays.Replay;
 import mchorse.bbs_mod.forms.FormUtils;
+import mchorse.bbs_mod.forms.entities.IEntity;
+import mchorse.bbs_mod.forms.entities.MCEntity;
+import mchorse.bbs_mod.entity.ActorEntity;
 import mchorse.bbs_mod.forms.forms.Form;
 import mchorse.bbs_mod.graphics.texture.Texture;
 import mchorse.bbs_mod.graphics.window.Window;
@@ -650,6 +653,23 @@ public class UIFilmPanel extends UIDataDashboardPanel<Film> implements IFlightSu
     public void close()
     {
         super.close();
+
+        /* Clean up entities */
+        if (this.controller != null)
+        {
+            for (IEntity entity : this.controller.getEntities().values())
+            {
+                if (entity instanceof MCEntity)
+                {
+                    net.minecraft.entity.Entity mcEntity = ((MCEntity) entity).getMcEntity();
+
+                    if (mcEntity instanceof ActorEntity)
+                    {
+                        ((ActorEntity) mcEntity).remove(net.minecraft.entity.Entity.RemovalReason.DISCARDED);
+                    }
+                }
+            }
+        }
 
         BBSRendering.setCustomSize(false);
         MorphRenderer.hidePlayer = false;

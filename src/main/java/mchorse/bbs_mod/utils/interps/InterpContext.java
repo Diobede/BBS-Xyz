@@ -17,6 +17,12 @@ public class InterpContext
 
     /* Extra variables */
     public final EasingArgs args = new EasingArgs();
+    
+    /* NURBS Weights */
+    public double w0;
+    public double w1;
+    public double w2;
+    public double w3;
 
     public InterpContext set(double a, double b, double x)
     {
@@ -34,10 +40,21 @@ public class InterpContext
         this.isEnd = false;
 
         this.args.v1 = this.args.v2 = this.args.v3 = this.args.v4 = 0D;
+        this.w0 = this.w1 = this.w2 = this.w3 = 1.0D;
 
         return this;
     }
 
+    public InterpContext weights(double w0, double w1, double w2, double w3)
+    {
+        this.w0 = w0;
+        this.w1 = w1;
+        this.w2 = w2;
+        this.w3 = w3;
+        
+        return this;
+    }
+    
     public InterpContext extra(EasingArgs args)
     {
         this.args.v1 = args.v1;

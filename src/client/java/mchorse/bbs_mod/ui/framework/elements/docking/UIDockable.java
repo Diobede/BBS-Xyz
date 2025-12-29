@@ -40,6 +40,19 @@ public class UIDockable extends UIElement
     @Override
     public void render(UIContext context)
     {
+        /* Check if we should hide close button */
+        UIDockingRoot root = this.getParent(UIDockingRoot.class);
+        
+        // Logic: Hide close button if this is the ONLY content in the root node (i.e. root is leaf and this is its content)
+        if (root != null && root.rootNode.isLeaf() && root.rootNode.getContent() == this)
+        {
+            this.close.setVisible(false);
+        }
+        else
+        {
+            this.close.setVisible(true);
+        }
+
         /* Render Header */
         context.batcher.box(this.area.x, this.area.y, this.area.ex(), this.area.y + 20, Colors.A50 | 0x000000);
         

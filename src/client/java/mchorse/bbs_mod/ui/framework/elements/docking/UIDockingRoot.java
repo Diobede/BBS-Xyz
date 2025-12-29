@@ -1,6 +1,7 @@
 package mchorse.bbs_mod.ui.framework.elements.docking;
 
 import mchorse.bbs_mod.ui.framework.UIContext;
+import mchorse.bbs_mod.ui.framework.elements.IUIElement;
 import mchorse.bbs_mod.ui.framework.elements.UIElement;
 import mchorse.bbs_mod.ui.utils.Area;
 import mchorse.bbs_mod.utils.colors.Colors;
@@ -48,7 +49,11 @@ public class UIDockingRoot extends UIElement
             this.renderDropZone(context);
             
             /* Handle mouse release manually since we are in global drag mode */
-            if (!context.menu.context.isHeld(0)) // 0 is Left Mouse Button
+            // Check if Left Mouse Button (0) is NOT held.
+            // Note: UIContext.menu.context might not be updating 'isHeld' correctly if we consume events elsewhere.
+            // Let's rely on standard event flow or verify via debug if needed.
+            // Also ensure dragging is cleared.
+            if (!context.menu.context.isHeld(0)) 
             {
                 this.drop(context);
                 this.dragging = null;
@@ -68,10 +73,15 @@ public class UIDockingRoot extends UIElement
     
     private void findDropZone(UIContext context, UIDockingNode node)
     {
-        if (node.childA != null)
+        if (!node.isLeaf())
         {
-            findDropZone(context, node.childA);
-            findDropZone(context, node.childB);
+            for (IUIElement child : node.getChildren())
+            {
+                if (child instanceof UIDockingNode)
+                {
+                    findDropZone(context, (UIDockingNode) child);
+                }
+            }
             return;
         }
         
@@ -86,7 +96,7 @@ public class UIDockingRoot extends UIElement
             
             if (x > w * 0.25 && x < w * 0.75 && y > h * 0.25 && y < h * 0.75)
             {
-                this.dropZone = 0; // Center (Tab) - Not implemented yet, treats as replace/cancel
+                this.dropZone = 0; // Center (Tab/Replace)
             }
             else
             {
@@ -140,7 +150,7 @@ public class UIDockingRoot extends UIElement
             /* Remove dragging element from its old parent */
             this.dragging.removeFromParent();
 
-            /* Create a new wrapper for the content because the old UIDockable might be tied to old layout logic */
+            /* Create a new wrapper for the content */
             UIDockable newDockable = new UIDockable(this.dragging.title, this.dragging.icon, this.dragging.content);
             
             boolean vertical = this.dropZone == 1 || this.dropZone == 2;

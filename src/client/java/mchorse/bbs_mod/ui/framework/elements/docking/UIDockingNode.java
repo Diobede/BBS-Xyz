@@ -9,11 +9,6 @@ public class UIDockingNode extends UIElement
 {
     private static final int BLACK = 0x000000;
 
-    public UIDockingNode childA;
-    public UIDockingNode childB;
-    
-    public UIElement content;
-    
     public boolean vertical = false;
     public float split = 0.5F;
     
@@ -28,48 +23,153 @@ public class UIDockingNode extends UIElement
     public void setContent(UIElement content)
     {
         this.removeAll();
-        this.content = content;
-        this.childA = this.childB = null;
         
         if (content != null)
         {
             this.add(content.full(this));
         }
     }
+    
+    public UIElement getContent()
+    {
+        return this.getChildren().isEmpty() ? null : (UIElement) this.getChildren().get(0);
+    }
+    
+    public boolean isLeaf()
+    {
+        /* A leaf node has either 0 children (empty) or 1 child (content) */
+        /* A split node has exactly 2 children (both are UIDockingNode) */
+        return this.getChildren().size() <= 1;
+    }
 
     public void split(boolean vertical, UIElement newContent, boolean first)
     {
-        /* We are creating new nodes, so we need to properly transfer ownership */
-        UIDockingNode oldNode = new UIDockingNode();
+        UIElement currentContent = this.getContent();
+        this.removeAll();
         
-        /* Instead of just setting the field, we use setContent to register parent-child relationship */
-        if (this.content != null)
+        UIDockingNode nodeA = new UIDockingNode();
+        UIDockingNode nodeB = new UIDockingNode();
+        
+        if (currentContent != null)
         {
-            this.content.removeFromParent(); // Detach from 'this'
-            oldNode.setContent(this.content);
+            currentContent.removeFromParent();
+            nodeA.setContent(currentContent);
         }
         
-        UIDockingNode newNode = new UIDockingNode();
-        newNode.setContent(newContent);
+        nodeB.setContent(newContent);
         
-        this.content = null;
         this.vertical = vertical;
-        this.childA = first ? newNode : oldNode;
-        this.childB = first ? oldNode : newNode;
+        this.split = 0.5F;
         
-        this.removeAll();
-        this.add(this.childA, this.childB);
+        /* If first is true, new content goes to A (top/left), old to B */
+        /* If first is false, old to A, new to B */
+        
+        if (first)
+        {
+            // Swap contents
+            UIElement temp = nodeA.getContent();
+            if (temp != null) temp.removeFromParent();
+            
+            nodeA.setContent(nodeB.getContent());
+            nodeB.setContent(temp);
+        }
+        
+        this.add(nodeA, nodeB);
         this.resize();
+    }
+    
+    public void removeChild(UIElement child)
+    {
+        if (this.isLeaf())
+        {
+            /* If we are a leaf and child is removed, we become empty */
+            this.removeAll();
+        }
+        else
+        {
+            /* We are a split node */
+            UIElement remaining = null;
+            
+            if (this.getChildren().contains(child))
+            {
+                int index = this.getChildren().indexOf(child);
+                remaining = (UIElement) this.getChildren().get(index == 0 ? 1 : 0);
+            }
+            
+            if (remaining != null)
+            {
+                /* Collapse this node: Replace 'this' in parent with 'remaining' */
+                UIDockingNode parent = this.getParent(UIDockingNode.class);
+                UIDockingRoot root = this.getParent(UIDockingRoot.class);
+                
+                remaining.removeFromParent();
+                
+                if (parent != null)
+                {
+                    parent.replaceChild(this, remaining);
+                }
+                else if (root != null)
+                {
+                    root.setRootContent(remaining);
+                }
+            }
+        }
+        
+        this.resize();
+    }
+    
+    public void replaceChild(UIElement oldChild, UIElement newChild)
+    {
+        int index = this.getChildren().indexOf(oldChild);
+        if (index != -1)
+        {
+            this.getChildren().set(index, newChild);
+            
+            /* Properly update parent links using public methods */
+            oldChild.removeFromParent();
+            this.add(newChild); // This adds to the end, which might mess up order if we rely on index.
+            
+            // Correction: Since we manually set the list element above, we need to ensure parentage is correct.
+            // But we can't access .parent directly.
+            // Best approach: Remove old, insert new at specific index.
+            
+            // Re-doing the logic:
+            this.getChildren().set(index, oldChild); // Revert for a sec to use proper removal
+            
+            // Actually, let's use the provided methods if possible. 
+            // Since we are in a subpackage, we can't access .parent.
+            // But UIElement.add() sets the parent.
+            
+            // Let's rely on remove/add but keep order?
+            // UIDockingNode relies on index 0 being A and 1 being B.
+            
+            // Strategy: Clear list, add them back in correct order.
+            UIElement other = (UIElement) this.getChildren().get(index == 0 ? 1 : 0);
+            this.removeAll();
+            
+            if (index == 0)
+            {
+                this.add(newChild, other);
+            }
+            else
+            {
+                this.add(other, newChild);
+            }
+            
+            this.resize();
+        }
     }
     
     public boolean contains(UIElement target)
     {
-        if (this.content == target) return true;
-        if (this.content instanceof UIDockable && ((UIDockable) this.content).content == target) return true;
+        if (target == null) return false;
         
-        if (this.childA != null)
+        /* Check direct content */
+        for (IUIElement child : this.getChildren())
         {
-            return this.childA.contains(target) || this.childB.contains(target);
+            if (child == target) return true;
+            if (child instanceof UIDockable && ((UIDockable) child).content == target) return true;
+            if (child instanceof UIDockingNode && ((UIDockingNode) child).contains(target)) return true;
         }
         
         return false;
@@ -78,62 +178,57 @@ public class UIDockingNode extends UIElement
     @Override
     public void resize()
     {
-        if (this.childA != null && this.childB != null)
+        /* Standard resize first to set my own area */
+        // super.resize(); // We handle child sizing manually below
+        this.resizer.apply(this.area);
+
+        if (!this.isLeaf() && this.getChildren().size() == 2)
         {
+            UIElement childA = (UIElement) this.getChildren().get(0);
+            UIElement childB = (UIElement) this.getChildren().get(1);
+            
             int size = this.vertical ? this.area.h : this.area.w;
             int splitPoint = (int) (size * this.split);
 
             if (this.vertical)
             {
-                this.childA.set(this.area.x, this.area.y, this.area.w, splitPoint);
-                this.childB.set(this.area.x, this.area.y + splitPoint, this.area.w, this.area.h - splitPoint);
+                childA.set(this.area.x, this.area.y, this.area.w, splitPoint);
+                childB.set(this.area.x, this.area.y + splitPoint, this.area.w, this.area.h - splitPoint);
             }
             else
             {
-                this.childA.set(this.area.x, this.area.y, splitPoint, this.area.h);
-                this.childB.set(this.area.x + splitPoint, this.area.y, this.area.w - splitPoint, this.area.h);
+                childA.set(this.area.x, this.area.y, splitPoint, this.area.h);
+                childB.set(this.area.x + splitPoint, this.area.y, this.area.w - splitPoint, this.area.h);
             }
             
-            this.childA.resize();
-            this.childB.resize();
+            childA.resize();
+            childB.resize();
         }
-        else if (this.content != null)
+        else
         {
-            /* Force content to fill the node */
-            this.content.set(this.area.x, this.area.y, this.area.w, this.area.h);
-            this.content.resize();
+            /* Leaf node: let standard resize handle the single child (content) */
+            for (IUIElement child : this.getChildren())
+            {
+                child.resize();
+            }
         }
-        else if (this.content != null)
-        {
-            this.content.resize();
-        }
+        
+        this.resizer.postApply(this.area);
     }
 
     @Override
     public void render(UIContext context)
     {
-        if (this.childA != null && this.childB != null)
-        {
-            this.childA.render(context);
-            this.childB.render(context);
-        }
-        else if (this.content != null)
-        {
-            this.content.render(context);
-        }
+        super.render(context);
         
-        if (this.childA != null)
+        if (!this.isLeaf() && this.getChildren().size() == 2)
         {
-            int mx = context.mouseX;
-            int my = context.mouseY;
-            
             if (this.vertical)
             {
                 int sy = this.area.y + (int)(this.area.h * this.split);
-                
                 context.batcher.box(this.area.x, sy - 1, this.area.ex(), sy + 1, Colors.A50 | BLACK);
-
-                if (this.draggingSplit || (Math.abs(my - sy) < 4 && this.area.isInside(context)))
+                
+                if (this.draggingSplit || (Math.abs(context.mouseY - sy) < 4 && this.area.isInside(context)))
                 {
                     context.batcher.box(this.area.x, sy - 2, this.area.ex(), sy + 2, Colors.ACTIVE);
                 }
@@ -141,10 +236,9 @@ public class UIDockingNode extends UIElement
             else
             {
                 int sx = this.area.x + (int)(this.area.w * this.split);
-                
                 context.batcher.box(sx - 1, this.area.y, sx + 1, this.area.ey(), Colors.A50 | BLACK);
-
-                if (this.draggingSplit || (Math.abs(mx - sx) < 4 && this.area.isInside(context)))
+                
+                if (this.draggingSplit || (Math.abs(context.mouseX - sx) < 4 && this.area.isInside(context)))
                 {
                     context.batcher.box(sx - 2, this.area.y, sx + 2, this.area.ey(), Colors.ACTIVE);
                 }
@@ -155,12 +249,11 @@ public class UIDockingNode extends UIElement
     @Override
     protected boolean subMouseClicked(UIContext context)
     {
-        if (this.childA != null && this.area.isInside(context))
+        if (!this.isLeaf() && this.area.isInside(context))
         {
              if (this.vertical)
              {
                  int sy = this.area.y + (int)(this.area.h * this.split);
-                 
                  if (Math.abs(context.mouseY - sy) < 4)
                  {
                      this.draggingSplit = true;
@@ -170,7 +263,6 @@ public class UIDockingNode extends UIElement
              else
              {
                  int sx = this.area.x + (int)(this.area.w * this.split);
-                 
                  if (Math.abs(context.mouseX - sx) < 4)
                  {
                      this.draggingSplit = true;
@@ -206,10 +298,12 @@ public class UIDockingNode extends UIElement
             this.resize();
         }
         
-        if (this.childA != null)
+        for (IUIElement child : this.getChildren())
         {
-            this.childA.handleDrag(context);
-            this.childB.handleDrag(context);
+            if (child instanceof UIDockingNode)
+            {
+                ((UIDockingNode) child).handleDrag(context);
+            }
         }
     }
 }

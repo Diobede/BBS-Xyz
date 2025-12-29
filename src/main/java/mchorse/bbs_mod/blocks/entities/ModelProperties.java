@@ -178,9 +178,16 @@ public class ModelProperties implements IMapSerializable
     @Override
     public void fromData(MapType data)
     {
+        if (this.form != null) this.form.cleanup();
         this.form = this.processForm(FormUtils.fromData(data.getMap("form")));
+        
+        if (this.formThirdPerson != null) this.formThirdPerson.cleanup();
         this.formThirdPerson = this.processForm(FormUtils.fromData(data.getMap("formThirdPerson")));
+        
+        if (this.formInventory != null) this.formInventory.cleanup();
         this.formInventory = this.processForm(FormUtils.fromData(data.getMap("formInventory")));
+        
+        if (this.formFirstPerson != null) this.formFirstPerson.cleanup();
         this.formFirstPerson = this.processForm(FormUtils.fromData(data.getMap("formFirstPerson")));
 
         this.transform.fromData(data.getMap("transform"));
@@ -215,6 +222,9 @@ public class ModelProperties implements IMapSerializable
 
     public void update(IEntity entity)
     {
+        /* Set the form on the entity so renderers can access it via entity.getForm() */
+        entity.setForm(this.form);
+        
         if (this.form != null)
         {
             this.form.update(entity);
@@ -234,5 +244,13 @@ public class ModelProperties implements IMapSerializable
         {
             this.formFirstPerson.update(entity);
         }
+    }
+
+    public void cleanup()
+    {
+        if (this.form != null) this.form.cleanup();
+        if (this.formThirdPerson != null) this.formThirdPerson.cleanup();
+        if (this.formInventory != null) this.formInventory.cleanup();
+        if (this.formFirstPerson != null) this.formFirstPerson.cleanup();
     }
 }
